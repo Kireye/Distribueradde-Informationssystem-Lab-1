@@ -5,10 +5,10 @@ DROP USER IF EXISTS 'staff'@'%';
 DROP USER IF EXISTS 'customer'@'%';
 DROP USER IF EXISTS 'guest'@'%';
 
-CREATE USER 'admin'@'%' IDENTIFIED BY 'admin';
-CREATE USER 'staff'@'%' IDENTIFIED BY 'staff';
-CREATE USER 'customer'@'%' IDENTIFIED BY 'customer';
-CREATE USER 'guest'@'%' IDENTIFIED BY 'guest';
+CREATE USER 'admin'@'%'     IDENTIFIED BY 'admin';
+CREATE USER 'staff'@'%'     IDENTIFIED BY 'staff';
+CREATE USER 'customer'@'%'  IDENTIFIED BY 'customer';
+CREATE USER 'guest'@'%'     IDENTIFIED BY 'guest';
 
 -- ADMIN
 GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP
