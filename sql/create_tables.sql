@@ -118,5 +118,5 @@ CREATE TABLE Order_item_mapping (
     item_id INT,
     FOREIGN KEY (item_id) REFERENCES Item(item_id),
     PRIMARY KEY (order_id, item_id)
-)
+);
 
