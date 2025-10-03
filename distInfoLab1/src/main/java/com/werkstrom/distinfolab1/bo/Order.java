@@ -7,7 +7,7 @@ public class Order {
 
     private final int orderId;
     private final int ownerId;
-    private List<Item> items;
+    private final List<Item> items;
     private OrderStatus status;
 
     public Order(int orderId, int ownerId, List<Item> items, OrderStatus status) {
@@ -19,6 +19,11 @@ public class Order {
         }
         if (items == null) {
             items = new ArrayList<>();
+        }
+        for (Item it : items) {
+            if (it == null) {
+                throw new IllegalArgumentException("items cannot contain null");
+            }
         }
         if (status == null) {
             throw new IllegalArgumentException("order status cannot be null");
@@ -41,8 +46,19 @@ public class Order {
         return new ArrayList<>(items);
     }
 
+    public int getNrOfItems() {
+        return items.size();
+    }
+
     public OrderStatus getStatus() {
         return status;
+    }
+
+    public void setStatus(OrderStatus newStatus) {
+        if (newStatus == null) {
+            throw new IllegalArgumentException("new status cannot be null");
+        }
+        status = newStatus;
     }
 
     @Override
@@ -50,7 +66,7 @@ public class Order {
         return "Order{" +
                 "orderId=" + orderId +
                 ", ownerId=" + ownerId +
-                ", items=" + items +
+                ", nrOfItems=" + items.size() +
                 ", status=" + status +
                 '}';
     }
