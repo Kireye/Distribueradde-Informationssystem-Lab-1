@@ -10,7 +10,7 @@ public class Item {
     private String description;
     private float price;
     private int stock;
-    private List<ItemCategory> categories;
+    private final List<ItemCategory> categories;
 
     public Item(int id, String name, String description, float price, int stock, List<ItemCategory> categories) {
         if (id <= 0) {
