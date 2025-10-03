@@ -15,6 +15,7 @@ public class MySqlConnectionManager {
             connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/online_store", username, password);
         }
         catch (Exception e) {
+            e.printStackTrace();
             throw new ConnectionException(e.getMessage());
         }
 
@@ -66,6 +67,7 @@ public class MySqlConnectionManager {
         }
     }
 
+    /* TODO: Delete?
     public static ResultSet executeQuery(PreparedStatement preparedStatement) throws QueryException {
         try {
             return preparedStatement.executeQuery();
@@ -74,4 +76,5 @@ public class MySqlConnectionManager {
             throw new QueryException("Failure while trying to execute query" + e.getMessage());
         }
     }
+     */
 }
