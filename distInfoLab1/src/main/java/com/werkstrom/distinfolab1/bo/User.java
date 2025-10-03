@@ -25,6 +25,9 @@ public class User {
         if (orders == null) {
             orders = new ArrayList<>();
         }
+        if (role == null) {
+            throw new IllegalArgumentException("role cannot be null");
+        }
         this.id = id;
         this.role = role;
         this.name = name;
