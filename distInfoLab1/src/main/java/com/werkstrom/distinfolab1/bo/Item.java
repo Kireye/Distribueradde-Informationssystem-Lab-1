@@ -19,8 +19,8 @@ public class Item {
         if (name == null || name.isEmpty()) {
             throw new IllegalArgumentException("name cannot be null or empty");
         }
-        if (description == null) { // Do we need this really?
-            description = "";
+        if (description == null) {
+            throw new IllegalArgumentException("description cannot be null");
         }
         if (price < 0) {
             throw new IllegalArgumentException("price cannot be negative");
@@ -65,7 +65,7 @@ public class Item {
 
     public void setDescription(String description) {
         if (description == null) {
-            description = "";
+            throw new IllegalArgumentException("description cannot be null");
         }
         this.description = description;
     }

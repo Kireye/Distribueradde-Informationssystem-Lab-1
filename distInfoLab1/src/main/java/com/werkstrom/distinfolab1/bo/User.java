@@ -19,7 +19,7 @@ public class User {
         if (name == null || name.isEmpty()) {
             throw new IllegalArgumentException("name cannot be null or empty");
         }
-        if (email == null || !email.contains("@")) {
+        if (!isEmailValid(email)) {
             throw new IllegalArgumentException("email must contain '@' and cannot be null");
         }
         if (orders == null) {
@@ -57,7 +57,7 @@ public class User {
         return new ArrayList<>(orders);
     }
 
-    public void addOrder(Order order) { // Should this be here?
+    public void addOrder(Order order) {
         if (order == null) {
             throw new IllegalArgumentException("order cannot be null");
         }
@@ -78,7 +78,7 @@ public class User {
         this.email = email;
     }
 
-    public boolean isEmailValid(String email) {
+    public boolean isEmailValid(String email) { // TODO: check so it only contains ONE @
         return email != null && email.contains("@");
     }
 
