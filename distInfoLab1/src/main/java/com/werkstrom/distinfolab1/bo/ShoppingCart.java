@@ -27,17 +27,30 @@ public class ShoppingCart {
         return new ArrayList<>(items);
     }
 
-    public float getTotalPrice(List<Item> items) {
+    public float getTotalPrice() {
         float totalPrice = 0;
         for (int i = 0; i < items.size(); i++) {
-            totalPrice += items[i].getPrice;
+            totalPrice += items.get(i).getPrice();
         }
+        return totalPrice;
+    }
+
+    public void addItem(Item item) {
+        if (item == null) {
+            throw new IllegalArgumentException("item cannot be null");
+        }
+        items.add(item);
+    }
+
+    public void removeItem(Item item) {
+        if (item == null) {
+            throw new IllegalArgumentException("item cannot be null");
+        }
+        items.remove(item);
     }
 
     public void clearItems() {
-        for (int i = 0; i < items.size(); i++) {
-            items.remove(i);
-        }
+        items.clear();
     }
 
     @Override
