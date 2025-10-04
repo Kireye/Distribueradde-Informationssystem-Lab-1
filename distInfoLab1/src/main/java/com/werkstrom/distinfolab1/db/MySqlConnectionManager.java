@@ -48,7 +48,9 @@ public class MySqlConnectionManager {
         }
     }
 
-    public static PreparedStatement createPreparedStatement(String query) throws QueryException {
+    public static PreparedStatement createPreparedStatement(String query) throws ConnectionException, QueryException {
+        if (!isConnected())
+            throw new ConnectionException("Cannot create prepared statement because the connection is closed.");
         try {
             return instance.connection.prepareStatement(query);
         }
