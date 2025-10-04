@@ -1,4 +1,6 @@
-package com.werkstrom.distinfolab1.bo;
+package com.werkstrom.distinfolab1.ui;
+
+import com.werkstrom.distinfolab1.bo.ItemCategory;
 
 import java.util.ArrayList;
 import java.util.List;

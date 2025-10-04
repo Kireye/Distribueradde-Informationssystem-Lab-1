@@ -1,5 +1,7 @@
-package com.werkstrom.distinfolab1.bo;
+package com.werkstrom.distinfolab1.ui;
 
+import com.werkstrom.distinfolab1.bo.Order;
+import com.werkstrom.distinfolab1.bo.ShoppingCart;
 import com.werkstrom.distinfolab1.bo.enums.UserRole;
 
 import java.util.ArrayList;
