@@ -1,5 +1,7 @@
 package com.werkstrom.distinfolab1.bo;
 
+import com.werkstrom.distinfolab1.bo.enums.UserRole;
+
 import java.util.ArrayList;
 import java.util.List;
 

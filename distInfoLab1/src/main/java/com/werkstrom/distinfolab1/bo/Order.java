@@ -1,5 +1,7 @@
 package com.werkstrom.distinfolab1.bo;
 
+import com.werkstrom.distinfolab1.bo.enums.OrderStatus;
+
 import java.util.ArrayList;
 import java.util.List;
 
