@@ -1,19 +1,23 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 
+<link rel="stylesheet" href="css/style.css?v=6">
+
 <!-- TOPP: logo (hem), sökfält, konto + kundvagn -->
 <header class="site-header">
   <div class="container topbar">
+
     <!-- Logo -> Hem -->
     <a class="brand" href="<%= request.getContextPath() %>/index.jsp">MiniShop</a>
 
     <!-- Sök (GET). Byt action till /products/search när controller finns -->
     <form class="search" action="<%= request.getContextPath() %>/index.jsp" method="get">
-      <input type="text" name="q" placeholder="Sök bland produkterna…" value="${param.q}">
+      <input type="text" name="q" placeholder="Sök bland produkter…" value="${param.q}">
       <button type="submit" aria-label="Sök">🔍</button>
     </form>
 
     <!-- Actions (konto + kundvagn) -->
     <div class="actions">
+
       <!-- Konto -->
       <div class="action">
         <a class="icon" href="<%= request.getContextPath() %>/login.jsp" aria-label="Konto">
@@ -32,19 +36,27 @@
       <div class="action">
         <a class="icon" href="<%= request.getContextPath() %>/cart.jsp" aria-label="Korg">
           <!-- cart icon -->
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M7 6h14l-1.5 9H8.6L7 6Zm-3 0h2l2 12h11M9 21a1 1 0 1 0 0-2 1 1 0 0 0 0 2Zm8 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"/>
+          <svg viewBox="0 0 24 24" aria-hidden="true" class="cart-svg">
+            <path d="M7 6h14l-1.5 9H8.6L7 6Zm-3 0h2l2 12h11M9 21a1 1 0 1 0 0-2
+              1 1 0 0 0 0 2Zm8 0a1 1 0 1 0 0-2
+              1 1 0 0 0 0 2Z"/>
           </svg>
-          <span class="badge"><%= request.getSession(false) != null && request.getSession(false).getAttribute("cartCount") != null ? request.getSession(false).getAttribute("cartCount") : 0 %></span>
+          <span class="badge">
+            <%= request.getSession(false) != null &&
+                request.getSession(false).getAttribute("cartCount") != null
+                ? request.getSession(false).getAttribute("cartCount")
+                : 0 %>
+          </span>
         </a>
         <div class="links">
           <a href="<%= request.getContextPath() %>/cart.jsp"></a>
         </div>
       </div>
+
     </div>
   </div>
 
-  <!-- Kategorirad under sök -->
+  <!-- Kategori rad under sök -->
   <nav class="catbar">
     <div class="container catbar-inner">
       <a href="<%= request.getContextPath() %>/index.jsp?category=Elektronik">Elektronik</a>

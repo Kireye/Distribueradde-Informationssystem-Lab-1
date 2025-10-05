@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Skapa konto</title>
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
 </head>
 <body>
 
@@ -14,8 +14,7 @@
   <section class="auth-box card">
     <h1>Skapa konto</h1>
 
-    <!-- När du bygger controller: POST /users -->
-    <form action="<%= request.getContextPath() %>/users" method="post" class="stack">
+    <form action="${pageContext.request.contextPath}/users" method="post" class="stack">
       <label>
         <span class="sr-only">E-post</span>
         <div class="input-icon">
@@ -40,7 +39,7 @@
     </form>
 
     <div class="auth-links">
-      <a class="link" href="<%= request.getContextPath() %>/login.jsp">Har du redan konto? Logga in</a>
+      <a class="link" href="${pageContext.request.contextPath}/login.jsp">Har du redan konto? Logga in</a>
     </div>
   </section>
 </main>

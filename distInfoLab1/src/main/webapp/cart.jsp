@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Varukorg</title>
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
 </head>
 <body>
 
@@ -12,12 +12,7 @@
 
 <main class="container">
   <h1>Varukorg</h1>
-  <p class="muted">
-    Den här sidan visar korgen. När CartController är klar kan den lägga en lista i
-    <code>request</code> eller <code>session</code> som du loopar på med JSTL/EL.
-  </p>
 
-  <!-- Placeholder-tabell (ersätt senare med riktig data) -->
   <table class="table">
     <thead>
       <tr>
@@ -44,13 +39,11 @@
   </table>
 
   <div class="row gap">
-    <!-- Uppdatera antal senare (CartController /cart/update) -->
-    <form action="<%= request.getContextPath() %>/cart/clear" method="post">
+    <form action="${pageContext.request.contextPath}/cart/clear" method="post">
       <button type="submit" class="btn-secondary">Töm korg</button>
     </form>
 
-    <!-- Checkout leder till OrderController (t.ex. /orders/checkout) -->
-    <form action="<%= request.getContextPath() %>/orders/checkout" method="post">
+    <form action="${pageContext.request.contextPath}/orders/checkout" method="post">
       <button type="submit">Till kassan</button>
     </form>
   </div>

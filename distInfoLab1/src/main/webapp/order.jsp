@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Mina ordrar</title>
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
 </head>
 <body>
 
@@ -14,10 +14,9 @@
   <h1>Mina ordrar</h1>
   <p class="muted">
     Låt OrderController kontrollera inloggning (t.ex. via <code>session.userEmail</code>).
-    Om inte inloggad → skicka <code>response.sendRedirect("login.jsp")</code>.
+    Om inte inloggad → <code>response.sendRedirect("login.jsp")</code>.
   </p>
 
-  <!-- Placeholder-lista, ersätt med data från bo/db via controller -->
   <div class="card">
     <h3>Order #12345</h3>
     <p>Datum: 2025-10-04 • Summa: 398 kr • Status: Skickad</p>

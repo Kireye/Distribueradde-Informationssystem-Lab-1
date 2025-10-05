@@ -4,38 +4,48 @@
 <head>
   <meta charset="UTF-8">
   <title>${param.name} – Produkt</title>
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
 </head>
 <body>
 
 <%@ include file="/WEB-INF/jspf/header.jspf" %>
 
 <%
-  String ctx = request.getContextPath();
-
-  // Hämta bildfil från query (fallback till airpods.jpg om inget skickas)
+  // Bild (fallback)
   String imageFile = request.getParameter("image");
-  if (imageFile == null || imageFile.isBlank()) {
+  if (imageFile == null || imageFile.trim().isEmpty()) {
       imageFile = "espressomachine.jpg";
   }
 
-  // Beräkna lagertext/klass
+  // Lagerstatus -> text/klass
+  int stockValue = 0;
   String stockParam = request.getParameter("stock");
-  int s = 0;
   if (stockParam != null) {
-      try { s = Integer.parseInt(stockParam); } catch (NumberFormatException ignored) {}
+      try { stockValue = Integer.parseInt(stockParam); } catch (NumberFormatException ignored) {}
   }
+
   String stockText;
   String stockClass;
-  if (s > 10) {
+  if (stockValue > 10) {
       stockText = "I lager";
       stockClass = "in-stock";
-  } else if (s > 0) {
+  } else if (stockValue > 0) {
       stockText = "Få kvar";
       stockClass = "low-stock";
   } else {
       stockText = "Slut";
       stockClass = "out-stock";
+  }
+
+  // Attribut till inputs/knapp (utan ternärer)
+  boolean outOfStock = (stockValue == 0);
+  String qtyDisabledAttr = "";
+  String buttonDisabledAttr = "";
+  String buttonClassAttr = "";
+  if (outOfStock) {
+      qtyDisabledAttr = "disabled";
+      buttonDisabledAttr = "disabled";
+      buttonClassAttr = "class='btn-disabled'";
   }
 %>
 
@@ -43,7 +53,7 @@
 
   <!-- Vänster: huvudbild -->
   <section class="gallery">
-    <img src="<%= ctx %>/images/<%= imageFile %>" alt="${param.name}" class="main-image">
+    <img src="${pageContext.request.contextPath}/images/<%= imageFile %>" alt="${param.name}" class="main-image">
   </section>
 
   <!-- Mitten: detaljer -->
@@ -75,14 +85,14 @@
       <div class="<%= stockClass %>"><%= stockText %></div>
     </div>
 
-    <form action="<%= ctx %>/cart/add" method="post" class="stack">
+    <form action="${pageContext.request.contextPath}/cart/add" method="post" class="stack">
       <input type="hidden" name="productId" value="${param.id}">
       <input type="hidden" name="name" value="${param.name}">
       <input type="hidden" name="price" value="${param.price}">
       <label>Antal
-        <input type="number" name="qty" min="1" value="1" <%= s == 0 ? "disabled" : "" %>>
+        <input type="number" name="qty" min="1" value="1" <%= qtyDisabledAttr %>>
       </label>
-      <button type="submit" <%= s == 0 ? "disabled class='btn-disabled'" : "" %>>
+      <button type="submit" <%= buttonDisabledAttr %> <%= buttonClassAttr %>>
         Lägg till i kundvagn
       </button>
     </form>
