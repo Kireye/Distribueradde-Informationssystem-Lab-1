@@ -115,7 +115,7 @@ public class MySqlUser extends User {
                 if (orderId != lastOrderId) {
                     OrderStatus orderStatus = OrderStatus.valueOf(resultSet.getString("status").toUpperCase());
                     Date orderDate = resultSet.getDate("order_date");
-                    orders.add(new Order(orderId, userId, null, orderStatus));
+                    orders.add(new Order(orderId, userId, orderDate, null, orderStatus));
                     lastOrderId = orderId;
                     lastItemId = 0;
                 }
@@ -274,7 +274,7 @@ public class MySqlUser extends User {
             statement.executeUpdate();
             MySqlConnectionManager.commitTransaction();
         }
-        catch (SQLException e) {
+        catch (Exception e) {
             MySqlConnectionManager.rollbackTransaction();
             throw new QueryException("Could not empty cart of user " + userId + " : " + e.getMessage());
         }

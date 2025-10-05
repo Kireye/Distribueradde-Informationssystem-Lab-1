@@ -3,21 +3,26 @@ package com.werkstrom.distinfolab1.bo;
 import com.werkstrom.distinfolab1.bo.enums.OrderStatus;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 public class Order {
 
     private final int orderId;
     private final int ownerId;
+    private final Date orderDate;
     private final List<QuantityItem> orderItems;
     private OrderStatus status;
 
-    public Order(int orderId, int ownerId, List<QuantityItem> items, OrderStatus status) {
+    public Order(int orderId, int ownerId, Date orderDate, List<QuantityItem> items, OrderStatus status) {
         if (orderId <= 0) {
             throw new IllegalArgumentException("order id must be greater than 0");
         }
         if (ownerId <= 0) {
             throw new IllegalArgumentException("owner id must be greater than 0");
+        }
+        if (orderDate == null) {
+            throw new IllegalArgumentException("order date must not be null");
         }
         if (items == null) {
             items = new ArrayList<>();
@@ -32,6 +37,7 @@ public class Order {
         }
         this.orderId = orderId;
         this.ownerId = ownerId;
+        this.orderDate = orderDate;
         this.orderItems = new ArrayList<>(items);
         this.status = status;
     }
@@ -42,6 +48,10 @@ public class Order {
 
     public int getOwnerId() {
         return ownerId;
+    }
+
+    public Date getOrderDate() {
+        return orderDate;
     }
 
     public List<QuantityItem> getOrderItems() {
