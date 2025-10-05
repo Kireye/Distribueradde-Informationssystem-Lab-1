@@ -6,6 +6,7 @@ import java.util.List;
 public class CartItem {
     private int quantity;
     private final Item item;
+
     public CartItem(int quantity, Item item) {
         if (quantity <= 0) throw new IllegalArgumentException("quantity cannot be negative or zero (0)");
         if (item == null) throw new IllegalArgumentException("item cannot be null");

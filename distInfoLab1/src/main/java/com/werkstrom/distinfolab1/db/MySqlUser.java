@@ -86,17 +86,16 @@ public class MySqlUser extends User {
 
         try (PreparedStatement statement = MySqlConnectionManager.createPreparedStatement(query)) {
             MySqlConnectionManager.startTransaction();
+            String password_hash = hashPassword(password);
             statement.setString(1, email);
-            statement.setString(2, hashPassword(password));
+            statement.setString(2, password_hash);
             statement.setString(3, email);
-            statement.setString(4, hashPassword(password));
+            statement.setString(4, password_hash);
             statement.setString(5, email);
-            statement.setString(6, hashPassword(password));
+            statement.setString(6, password_hash);
             boolean hasResults = statement.execute();
             if (!hasResults)
                 throw new NoResultException("No user found with email: " + email + " and password: " + password);
-
-            int rsCount = 0;
 
             ResultSet resultSet = statement.getResultSet();
             resultSet.next();
@@ -112,6 +111,7 @@ public class MySqlUser extends User {
             int lastCategoryId = 0;
             while (resultSet.next()) {
                 int orderId = resultSet.getInt("order_id");
+                if (orderId == 0) break;
                 if (orderId != lastOrderId) {
                     OrderStatus orderStatus = OrderStatus.valueOf(resultSet.getString("status").toUpperCase());
                     Date orderDate = resultSet.getDate("order_date");
@@ -147,6 +147,7 @@ public class MySqlUser extends User {
             ArrayList<CartItem> cartItems = new ArrayList<>();
             while (resultSet.next()) {
                 int itemId = resultSet.getInt("item_id");
+                if (itemId == 0) break;
                 if (itemId != lastItemId) {
                     String itemName = resultSet.getString("item_name");
                     String description = resultSet.getString("description");
