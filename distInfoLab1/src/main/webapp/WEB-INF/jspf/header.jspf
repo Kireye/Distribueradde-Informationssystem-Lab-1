@@ -53,6 +53,22 @@
         </div>
       </div>
 
+      <!-- Ordrar -->
+      <div class="action">
+        <div class="links">
+          <%
+            // === TODO: Lägg in riktig inloggningskontroll senare ===
+            // Exempel (senare):
+            // HttpSession session = request.getSession(false);
+            // boolean loggedIn = (session != null && session.getAttribute("user") != null);
+            // String linkTarget = loggedIn ? "order.jsp" : "login.jsp";
+            // För nu: gå direkt till order.jsp
+          %>
+          <a href="<%= request.getContextPath() %>/order.jsp">Ordrar</a>
+        </div>
+      </div>
+
+
     </div>
   </div>
 
