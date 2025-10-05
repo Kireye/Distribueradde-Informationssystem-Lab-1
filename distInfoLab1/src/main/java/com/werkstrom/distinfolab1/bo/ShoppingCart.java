@@ -6,9 +6,9 @@ import java.util.List;
 public class ShoppingCart {
 
     private final int ownerId;
-    private final List<CartItem> cartItems;
+    private final List<QuantityItem> cartItems;
 
-    public ShoppingCart(int ownerId, List<CartItem> items) {
+    public ShoppingCart(int ownerId, List<QuantityItem> items) {
         if (ownerId <= 0) {
             throw new IllegalArgumentException("owner id must be greater than 0");
         }
@@ -23,13 +23,13 @@ public class ShoppingCart {
         return ownerId;
     }
 
-    public List<CartItem> getCartItems() {
+    public List<QuantityItem> getCartItems() {
         return new ArrayList<>(cartItems);
     }
 
     public float getTotalPrice() {
         float totalPrice = 0;
-        for (CartItem cartItem : cartItems) {
+        for (QuantityItem cartItem : cartItems) {
             totalPrice += cartItem.getItem().getPrice();
         }
         return totalPrice;
@@ -41,7 +41,7 @@ public class ShoppingCart {
 
         int itemIndex = getItemIndex(item);
         if (itemIndex > -1) cartItems.get(itemIndex).addQuantity(quantity);
-        else cartItems.add(new CartItem(quantity, item));
+        else cartItems.add(new QuantityItem(quantity, item));
     }
 
     public void addItem(Item item) {
@@ -58,7 +58,8 @@ public class ShoppingCart {
     }
 
     public void removeItem(Item item) {
-        removeItem(item, 1);
+        if (item == null) throw new IllegalArgumentException("item cannot be null");
+        removeItem(item, cartItems.get(getItemIndex(item)).getQuantity());
     }
 
     public int getItemQuantity(Item item) {
@@ -71,6 +72,7 @@ public class ShoppingCart {
     public void clearItems() {
         cartItems.clear();
     }
+
     private int getItemIndex(Item item) {
         if (item == null)
             return -1;

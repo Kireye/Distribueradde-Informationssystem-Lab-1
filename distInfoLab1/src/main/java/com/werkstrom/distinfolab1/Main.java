@@ -9,6 +9,7 @@ import java.util.List;
 
 public class Main {
     public static void main(String[] args) {
+        /*
         // 1) Skapa kategorier
         ItemCategory games = new ItemCategory(1, "Games");
         ItemCategory consoles = new ItemCategory(2, "Consoles");
@@ -64,9 +65,9 @@ public class Main {
         System.out.println("Cart total: " + user.getCart().getTotalPrice() + " kr");
 
         // 5) Skapa en order från kundvagnen (frys nuvarande innehåll)
-        List<CartItem> tmp = user.getCart().getCartItems(); // defensiv kopia tillbaka
+        List<QuantityItem> tmp = user.getCart().getCartItems(); // defensiv kopia tillbaka
         List<Item> itemsForOrder = new ArrayList<>();
-        for (CartItem item : tmp)
+        for (QuantityItem item : tmp)
             itemsForOrder.add(item.getItem());
         Order order = new Order(
                 5001,
@@ -114,6 +115,8 @@ public class Main {
         }
 
         System.out.println("\n== Done ==");
+
+         */
     }
 
 }

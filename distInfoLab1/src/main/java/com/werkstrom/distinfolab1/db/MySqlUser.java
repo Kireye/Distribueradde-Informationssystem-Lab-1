@@ -40,6 +40,7 @@ public class MySqlUser extends User {
                         "    co.status, " +
                         "    co.order_date, " +
                         "    oim.item_id, " +
+                        "    oim.quantity, " +
                         "    i.name AS item_name, " +
                         "    i.description, " +
                         "    i.price, " +
@@ -125,14 +126,15 @@ public class MySqlUser extends User {
                     String itemName = resultSet.getString("item_name");
                     String description = resultSet.getString("description");
                     float price = resultSet.getFloat("price");
-                    currentOrder.addItem(new Item(itemId, itemName, description, price, 0, null));
+                    int quantity = resultSet.getInt("quantity");
+                    currentOrder.addItem(new Item(itemId, itemName, description, price, 0, null), quantity);
                     lastItemId = itemId;
                     lastCategoryId = 0;
                 }
 
                 int categoryId = resultSet.getInt("item_category_id");
                 if (categoryId != lastCategoryId) {
-                    Item currentItem = currentOrder.getCartItems().get(currentOrder.getNrOfItems() - 1);
+                    Item currentItem = currentOrder.getOrderItems().get(currentOrder.getNrOfItems() - 1).getItem();
                     String categoryName = resultSet.getString("item_category_name");
                     currentItem.addCategory(new ItemCategory(categoryId, categoryName));
                     lastCategoryId = categoryId;
@@ -143,7 +145,7 @@ public class MySqlUser extends User {
             resultSet = statement.getResultSet();
             lastItemId = 0;
             lastCategoryId = 0;
-            ArrayList<CartItem> cartItems = new ArrayList<>();
+            ArrayList<QuantityItem> cartItems = new ArrayList<>();
             while (resultSet.next()) {
                 int itemId = resultSet.getInt("item_id");
                 if (itemId == 0) break;
@@ -154,7 +156,7 @@ public class MySqlUser extends User {
                     int stock = resultSet.getInt("stock");
                     int quantity = resultSet.getInt("quantity");
                     Item newItem = new Item(itemId, itemName, description, price, stock, null);
-                    cartItems.add(new CartItem(quantity, newItem));
+                    cartItems.add(new QuantityItem(quantity, newItem));
                     lastItemId = itemId;
                     lastCategoryId = 0;
                 }

@@ -9,10 +9,10 @@ public class Order {
 
     private final int orderId;
     private final int ownerId;
-    private final List<Item> cartItems;
+    private final List<QuantityItem> orderItems;
     private OrderStatus status;
 
-    public Order(int orderId, int ownerId, List<Item> items, OrderStatus status) {
+    public Order(int orderId, int ownerId, List<QuantityItem> items, OrderStatus status) {
         if (orderId <= 0) {
             throw new IllegalArgumentException("order id must be greater than 0");
         }
@@ -22,7 +22,7 @@ public class Order {
         if (items == null) {
             items = new ArrayList<>();
         }
-        for (Item it : items) {
+        for (QuantityItem it : items) {
             if (it == null) {
                 throw new IllegalArgumentException("items cannot contain null");
             }
@@ -32,7 +32,7 @@ public class Order {
         }
         this.orderId = orderId;
         this.ownerId = ownerId;
-        this.cartItems = new ArrayList<>(items);
+        this.orderItems = new ArrayList<>(items);
         this.status = status;
     }
 
@@ -44,16 +44,54 @@ public class Order {
         return ownerId;
     }
 
-    public List<Item> getCartItems() {
-        return new ArrayList<>(cartItems);
+    public List<QuantityItem> getOrderItems() {
+        return new ArrayList<>(orderItems);
+    }
+
+    public void addItem(Item item, int quantity) {
+        if (item == null) throw new IllegalArgumentException("item cannot be null");
+        if (quantity < 0) throw new IllegalArgumentException("quantity cannot be negative");
+
+        int itemIndex = getItemIndex(item);
+        if (itemIndex > -1) orderItems.get(itemIndex).addQuantity(quantity);
+        else orderItems.add(new QuantityItem(quantity, item));
     }
 
     public void addItem(Item item) {
-        cartItems.add(item);
+        addItem(item, 1);
+    }
+
+    public void removeItem(Item item, int quantity) {
+        if (item == null) throw new IllegalArgumentException("item cannot be null");
+        if (quantity < 0) throw new IllegalArgumentException("quantity cannot be negative");
+
+        int itemIndex = getItemIndex(item);
+        if (itemIndex > -1) orderItems.get(itemIndex).removeQuantity(quantity);
+        if (orderItems.get(itemIndex).getQuantity() <= 0) orderItems.remove(itemIndex);
+    }
+
+    public void removeItem(Item item) {
+        if (item == null) throw new IllegalArgumentException("item cannot be null");
+        removeItem(item, orderItems.get(getItemIndex(item)).getQuantity());
+    }
+
+    public int getItemQuantity(Item item) {
+        if (item == null) return 0;
+        int itemIndex = getItemIndex(item);
+        if (itemIndex > -1) return orderItems.get(itemIndex).getQuantity();
+        return 0;
     }
 
     public int getNrOfItems() {
-        return cartItems.size();
+        return orderItems.size();
+    }
+
+    public float getTotalPrice() {
+        float totalPrice = 0;
+        for (QuantityItem cartItem : orderItems) {
+            totalPrice += cartItem.getItem().getPrice();
+        }
+        return totalPrice;
     }
 
     public OrderStatus getStatus() {
@@ -67,12 +105,23 @@ public class Order {
         status = newStatus;
     }
 
+    private int getItemIndex(Item item) {
+        if (item == null)
+            return -1;
+
+        for  (int i = 0; i < orderItems.size(); i++) {
+            if (orderItems.get(i).getItem().equals(item)) return i;
+        }
+        return -1;
+    }
+
     @Override
     public String toString() {
         return "Order{" +
                 "orderId=" + orderId +
                 ", ownerId=" + ownerId +
-                ", nrOfItems=" + cartItems.size() +
+                ", orderItems=" + orderItems +
+                ", nrOfItems=" + orderItems.size() +
                 ", status=" + status +
                 '}';
     }
