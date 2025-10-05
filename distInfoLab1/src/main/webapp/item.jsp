@@ -114,7 +114,7 @@
       <div class="<%= stockClass %>"><%= stockText %></div>
     </div>
 
-    <form action="<%= request.getContextPath() %>/cart/add" method="post" class="stack">
+    <form action="<%= request.getContextPath() %>/cart-add.jsp" method="post" class="stack">
       <input type="hidden" name="productId" value="<%= item.getId() %>">
       <input type="hidden" name="name" value="<%= name %>">
       <input type="hidden" name="price" value="<%= price %>">

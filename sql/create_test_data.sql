@@ -94,21 +94,3 @@ VALUES
 
     -- Extra: Frying pan passar även för utomhusbruk (dubbel-kategori)
     (6, 6);  -- Frying pan -> Sport & Outdoor
-
-INSERT INTO Shopping_cart (user_id, item_id, quantity)
-VALUES
-    (3, 4, 5),
-    (3, 3, 1);
-
-INSERT INTO Customer_order (user_id, status, order_date)
-VALUES (3, 'ordered', '2025-10-04 12:00:00'); -- id: 1
-
-INSERT INTO Customer_order (user_id, status)
-VALUES (3, 'packaged');                                 -- id: 2
-
-INSERT INTO Order_item_mapping (order_id, item_id)
-VALUES
-    (1, 1), -- 5090         -> Order 1
-    (1, 2), -- 9800X3D      -> Order 1
-    (2, 5), -- Tent         -> Order 2
-    (2, 6); -- Sleeping bag -> Order 2
