@@ -43,9 +43,9 @@
       <button type="submit" class="btn-secondary">Töm korg</button>
     </form>
 
-    <form action="${pageContext.request.contextPath}/orders/checkout" method="post">
-      <button type="submit">Till kassan</button>
-    </form>
+    <a href="<%= request.getContextPath() %>/checkout.jsp">
+      <button type="button">Till kassan</button>
+    </a>
   </div>
 </main>
 
