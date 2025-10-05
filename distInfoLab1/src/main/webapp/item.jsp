@@ -4,32 +4,34 @@
 <head>
   <meta charset="UTF-8">
   <title>${param.name} – Produkt</title>
-  <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
+  <link rel="stylesheet" href="<%= request.getContextPath() %>/css/style.css?v=10">
 </head>
 <body>
 
 <%@ include file="/WEB-INF/jspf/header.jspf" %>
 
 <%
-  // Bild (fallback)
+  String ctx = request.getContextPath();
+
+  // Bildfil från query (fallback)
   String imageFile = request.getParameter("image");
-  if (imageFile == null || imageFile.trim().isEmpty()) {
-      imageFile = "espressomachine.jpg";
+  if (imageFile == null || imageFile.isBlank()) {
+      imageFile = "airpods.jpg";
   }
 
-  // Lagerstatus -> text/klass
-  int stockValue = 0;
+  // Lager
   String stockParam = request.getParameter("stock");
+  int s = 0;
   if (stockParam != null) {
-      try { stockValue = Integer.parseInt(stockParam); } catch (NumberFormatException ignored) {}
+      try { s = Integer.parseInt(stockParam); } catch (NumberFormatException ignored) {}
   }
 
   String stockText;
   String stockClass;
-  if (stockValue > 10) {
+  if (s > 10) {
       stockText = "I lager";
       stockClass = "in-stock";
-  } else if (stockValue > 0) {
+  } else if (s > 0) {
       stockText = "Få kvar";
       stockClass = "low-stock";
   } else {
@@ -37,23 +39,17 @@
       stockClass = "out-stock";
   }
 
-  // Attribut till inputs/knapp (utan ternärer)
-  boolean outOfStock = (stockValue == 0);
-  String qtyDisabledAttr = "";
-  String buttonDisabledAttr = "";
-  String buttonClassAttr = "";
-  if (outOfStock) {
-      qtyDisabledAttr = "disabled";
-      buttonDisabledAttr = "disabled";
-      buttonClassAttr = "class='btn-disabled'";
-  }
+  // Hur många val ska dropdownen visa?
+  // Nu: upp till s (lager), men max 10 för att inte bli för lång.
+  // TODO: När DB/BO finns, sätt exakt från produktens lagerfält.
+  int maxSelectable = Math.min(Math.max(s, 0), 10);
 %>
 
 <main class="container product-page">
 
   <!-- Vänster: huvudbild -->
   <section class="gallery">
-    <img src="${pageContext.request.contextPath}/images/<%= imageFile %>" alt="${param.name}" class="main-image">
+    <img src="<%= ctx %>/images/<%= imageFile %>" alt="${param.name}" class="main-image">
   </section>
 
   <!-- Mitten: detaljer -->
@@ -85,19 +81,52 @@
       <div class="<%= stockClass %>"><%= stockText %></div>
     </div>
 
-    <form action="${pageContext.request.contextPath}/cart/add" method="post" class="stack">
+    <form action="<%= ctx %>/cart/add" method="post" class="stack">
       <input type="hidden" name="productId" value="${param.id}">
       <input type="hidden" name="name" value="${param.name}">
       <input type="hidden" name="price" value="${param.price}">
+
       <label>Antal
-        <input type="number" name="qty" min="1" value="1" <%= qtyDisabledAttr %>>
+        <select name="qty" <%= s == 0 ? "disabled" : "" %> >
+          <%
+            // Generera 1..maxSelectable. Om s == 0, rendera ett disabled val.
+            if (s <= 0) {
+          %>
+              <option value="0" disabled>Slut i lager</option>
+          <%
+            } else {
+              for (int i = 1; i <= maxSelectable; i++) {
+          %>
+                <option value="<%= i %>"><%= i %></option>
+          <%
+              }
+              // Om vi kapat på 10, ge en hint
+              if (s > 10) {
+          %>
+                <!-- Visar bara upp till 10 i dropdownen just nu -->
+          <%
+              }
+            }
+          %>
+        </select>
       </label>
-      <button type="submit" <%= buttonDisabledAttr %> <%= buttonClassAttr %>>
+
+      <button type="submit" <%= s == 0 ? "disabled class='btn-disabled'" : "" %>>
         Lägg till i kundvagn
       </button>
     </form>
 
-    <div class="small-muted">Leveransinfo, returer m.m. (fylls i senare).</div>
+    <%
+      if (s > 0 && s <= 10) {
+    %>
+      <div class="small-muted">Endast <strong><%= s %></strong> kvar.</div>
+    <%
+      } else if (s > 10) {
+    %>
+      <div class="small-muted">Välj upp till 10 åt gången.</div>
+    <%
+      }
+    %>
   </aside>
 
 </main>
