@@ -15,8 +15,7 @@ CREATE TABLE Item (
                         name VARCHAR(128) NOT NULL,
                         description VARCHAR(1024) NOT NULL,
                         price DECIMAL(9, 2) NOT NULL CHECK ( price >= 0 ),
-                        stock INT NOT NULL CHECK ( stock >= 0 ),
-                        in_stock BOOLEAN GENERATED ALWAYS AS (stock > 0)
+                        stock INT NOT NULL CHECK ( stock >= 0 )
 );
 
 CREATE TABLE Item_category (
