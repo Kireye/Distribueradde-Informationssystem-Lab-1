@@ -14,8 +14,8 @@ CREATE TABLE Item (
                         item_id INT PRIMARY KEY AUTO_INCREMENT,
                         name VARCHAR(128) NOT NULL,
                         description VARCHAR(1024) NOT NULL,
-                        price DECIMAL(9, 2) NOT NULL,
-                        stock INT NOT NULL,
+                        price DECIMAL(9, 2) NOT NULL CHECK ( price >= 0 ),
+                        stock INT NOT NULL CHECK ( stock >= 0 ),
                         in_stock BOOLEAN GENERATED ALWAYS AS (stock > 0)
 );
 
@@ -37,7 +37,7 @@ CREATE TABLE Shopping_cart (
                         FOREIGN KEY (user_id) REFERENCES User(user_id) ON DELETE CASCADE,
                         item_id INT,
                         FOREIGN KEY (item_id) REFERENCES Item(item_id) ON DELETE CASCADE,
-                        quantity INT NOT NULL,
+                        quantity INT NOT NULL CHECK ( quantity > 0 ),
                         PRIMARY KEY (user_id, item_id)
 );
 
