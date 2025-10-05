@@ -45,9 +45,9 @@ VALUES (3, 'ordered', '2025-10-04 12:00:00'); -- id: 1
 INSERT INTO Customer_order (user_id, status)
 VALUES (3, 'packaged');                                 -- id: 2
 
-INSERT INTO Order_item_mapping (order_id, item_id)
+INSERT INTO Order_item_mapping (order_id, item_id, quantity)
 VALUES
-    (1, 1), -- 5090         -> Order 1
-    (1, 2), -- 9800X3D      -> Order 1
-    (2, 5), -- Tent         -> Order 2
-    (2, 6); -- Sleeping bag -> Order 2
+    (1, 1, 1), -- 5090         -> Order 1   x 1
+    (1, 2, 2), -- 9800X3D      -> Order 1   x 2
+    (2, 5, 3), -- Tent         -> Order 2   x 3
+    (2, 6, 4); -- Sleeping bag -> Order 2   x 4

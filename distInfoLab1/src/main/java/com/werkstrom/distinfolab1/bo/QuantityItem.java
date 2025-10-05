@@ -1,13 +1,10 @@
 package com.werkstrom.distinfolab1.bo;
 
-import java.util.ArrayList;
-import java.util.List;
-
-public class CartItem {
+public class QuantityItem {
     private int quantity;
     private final Item item;
 
-    public CartItem(int quantity, Item item) {
+    public QuantityItem(int quantity, Item item) {
         if (quantity <= 0) throw new IllegalArgumentException("quantity cannot be negative or zero (0)");
         if (item == null) throw new IllegalArgumentException("item cannot be null");
         this.quantity = quantity;
@@ -40,7 +37,7 @@ public class CartItem {
 
     @Override
     public String toString() {
-        return "CartItem{" + "quantity=" + quantity + ", item=" + item + '}';
+        return "QuantityItem{" + "quantity=" + quantity + ", item=" + item + '}';
     }
 
 }
