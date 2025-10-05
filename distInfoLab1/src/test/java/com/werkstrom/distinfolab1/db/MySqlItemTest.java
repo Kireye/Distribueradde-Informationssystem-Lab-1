@@ -16,4 +16,13 @@ class MySqlItemTest {
             System.out.println(item);
         }
     }
+
+    @Test
+    void getItemsByName() {
+        MySqlConnectionManager.initializeConnection("root", "MySQLRoot");
+        ArrayList<MySqlItem> result = (ArrayList<MySqlItem>) MySqlItem.getItemsByName("0", false);
+        for (MySqlItem item : result) {
+            System.out.println(item);
+        }
+    }
 }
