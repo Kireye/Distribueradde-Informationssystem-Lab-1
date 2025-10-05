@@ -2,6 +2,7 @@ package com.werkstrom.distinfolab1.db;
 
 import com.werkstrom.distinfolab1.bo.Item;
 import com.werkstrom.distinfolab1.bo.ItemCategory;
+import com.werkstrom.distinfolab1.db.exceptions.ConnectionException;
 import com.werkstrom.distinfolab1.db.exceptions.NoResultException;
 import com.werkstrom.distinfolab1.db.exceptions.QueryException;
 
@@ -16,7 +17,9 @@ public class MySqlItem extends Item {
         super(id, name, description, price, stock, categories);
     }
 
-    public static List<MySqlItem> getAllItems(boolean inStockOnly) {
+    public static List<MySqlItem> getAllItems(boolean inStockOnly) throws IllegalArgumentException, ConnectionException, NoResultException {
+        if (!MySqlConnectionManager.isConnected())  throw new ConnectionException("No connection to database");
+
         String query = 
                 "SELECT " +
                 "    i.item_id " +
@@ -52,8 +55,9 @@ public class MySqlItem extends Item {
         }
     }
 
-    public static List<MySqlItem> getItemsByName(String searchTerm, boolean inStockOnly) {
+    public static List<MySqlItem> getItemsByName(String searchTerm, boolean inStockOnly) throws IllegalArgumentException, ConnectionException, NoResultException {
         if (searchTerm == null || searchTerm.isEmpty()) throw new IllegalArgumentException("searchTerm cannot be null or empty");
+        if (!MySqlConnectionManager.isConnected())  throw new ConnectionException("No connection to database");
 
         String query = "SELECT " +
                 "    i.item_id " +
@@ -90,8 +94,9 @@ public class MySqlItem extends Item {
         }
     }
 
-    public static List<MySqlItem> getItemsByCategory(int categoryId, boolean inStockOnly) {
+    public static List<MySqlItem> getItemsByCategory(int categoryId, boolean inStockOnly) throws IllegalArgumentException, ConnectionException, NoResultException {
         if (categoryId <= 0) throw new IllegalArgumentException("categoryId cannot be <= 0");
+        if (!MySqlConnectionManager.isConnected())  throw new ConnectionException("No connection to database");
 
         String query = 
                 "SELECT " +
@@ -138,6 +143,29 @@ public class MySqlItem extends Item {
 
     }
 
+    public static List<ItemCategory> getAllItemCategories() throws IllegalArgumentException, ConnectionException, NoResultException {
+        if (!MySqlConnectionManager.isConnected())  throw new ConnectionException("No connection to database");
+
+        String query ="SELECT ic.item_category_id, ic.name FROM Item_category ic;";
+        try (PreparedStatement statement = MySqlConnectionManager.createPreparedStatement(query)) {
+            boolean hasResults = statement.execute();
+            if (!hasResults)  throw new NoResultException("No item categories found");
+
+            ResultSet resultSet = statement.getResultSet();
+            ArrayList<ItemCategory> itemCategories = new ArrayList<>();
+            while(resultSet.next()) {
+                int id = resultSet.getInt("item_category_id");
+                if (id == 0) throw new NoResultException("No item categories found");
+                String name =  resultSet.getString("name");
+                itemCategories.add(new ItemCategory(id, name));
+            }
+            return itemCategories;
+        }
+        catch (SQLException e) {
+            throw new QueryException("Failed to get item categories from database: " + e.getMessage());
+        }
+    }
+
     private static List<MySqlItem> getItemsFromResultSet(ResultSet resultSet) throws SQLException {
         ArrayList<Item> items = new ArrayList<>();
         int lastItemId = 0;
@@ -175,5 +203,4 @@ public class MySqlItem extends Item {
         }
         return resultList;
     }
-
 }
