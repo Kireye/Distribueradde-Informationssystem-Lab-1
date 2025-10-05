@@ -266,11 +266,14 @@ public class MySqlUser extends User {
         if (!MySqlConnectionManager.isConnected()) throw new ConnectionException("No connection established");
 
         String query = "DELETE FROM Shopping_cart WHERE user_id = ?;";
+        MySqlConnectionManager.startTransaction();
         try (PreparedStatement statement = MySqlConnectionManager.createPreparedStatement(query)) {
             statement.setInt(1, userId);
             statement.executeUpdate();
+            MySqlConnectionManager.commitTransaction();
         }
         catch (SQLException e) {
+            MySqlConnectionManager.rollbackTransaction();
             throw new QueryException("Could not empty cart of user " + userId + " : " + e.getMessage());
         }
     }
