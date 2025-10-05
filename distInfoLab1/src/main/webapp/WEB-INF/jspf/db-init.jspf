@@ -1,6 +1,6 @@
 <%@ page import="com.werkstrom.distinfolab1.db.MySqlConnectionManager" %>
 <%
-  // Initiera koppling en gång per applikation (enkelt & temporärt)
+  // Initialize DB connection once per application (simple & temporary)
   synchronized (application) {
       Object ready = application.getAttribute("dbReady");
       boolean isReady = false;
@@ -10,11 +10,10 @@
 
       if (!isReady || !MySqlConnectionManager.isConnected()) {
           try {
-              // Anpassa om du vill använda annan DB-användare
               MySqlConnectionManager.initializeConnection("guest", "guest");
               application.setAttribute("dbReady", Boolean.TRUE);
           } catch (RuntimeException e) {
-              request.setAttribute("dbError", "Kunde inte ansluta till databasen: " + e.getMessage());
+              request.setAttribute("dbError", "Could not connect to database: " + e.getMessage());
           }
       }
   }

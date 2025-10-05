@@ -3,10 +3,10 @@
 <%@ page import="com.werkstrom.distinfolab1.bo.facades.ItemFacade" %>
 <%@ page import="com.werkstrom.distinfolab1.ui.ItemInfo" %>
 <!DOCTYPE html>
-<html lang="sv">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Produkt</title>
+  <title>Product</title>
   <link rel="stylesheet" href="<%= request.getContextPath() %>/css/style.css?v=11">
 </head>
 <body>
@@ -17,16 +17,17 @@
   String idParam = request.getParameter("id");
   ItemInfo item = null;
   String err = null;
+
   if (idParam == null) {
-      err = "Ingen produkt-id angiven.";
+      err = "No product id specified.";
   } else {
       try {
           int itemId = Integer.parseInt(idParam);
           item = ItemFacade.getItemById(itemId);
       } catch (NumberFormatException nfe) {
-          err = "Ogiltigt produkt-id.";
+          err = "Invalid product id.";
       } catch (Exception e) {
-          err = "Kunde inte hämta produkt: " + e.getMessage();
+          err = "Could not fetch product: " + e.getMessage();
       }
   }
 %>
@@ -36,16 +37,16 @@
   if (err != null) {
 %>
     <section class="card">
-      <h2>Fel</h2>
+      <h2>Error</h2>
       <p><%= err %></p>
-      <p><a href="<%= request.getContextPath() %>/index.jsp">Tillbaka till produkter</a></p>
+      <p><a href="<%= request.getContextPath() %>/index.jsp">Back to products</a></p>
     </section>
 <%
   } else if (item == null) {
 %>
     <section class="card">
-      <p>Produkten kunde inte hittas.</p>
-      <p><a href="<%= request.getContextPath() %>/index.jsp">Tillbaka till produkter</a></p>
+      <p>Product not found.</p>
+      <p><a href="<%= request.getContextPath() %>/index.jsp">Back to products</a></p>
     </section>
 <%
   } else {
@@ -54,13 +55,13 @@
       float price = item.getPrice();
       int stock = item.getStock();
 
-      String stockText = "Slut";
+      String stockText = "Out of stock";
       String stockClass = "out-stock";
       if (stock > 10) {
-          stockText = "I lager";
+          stockText = "In stock";
           stockClass = "in-stock";
       } else if (stock > 0) {
-          stockText = "Få kvar";
+          stockText = "Low stock";
           stockClass = "low-stock";
       }
 
@@ -70,18 +71,16 @@
       }
 %>
 
-  <!-- Vänster: huvudbild -->
   <section class="gallery">
     <img src="<%= request.getContextPath() %>/images/placeholder.jpg" alt="<%= name %>" class="main-image">
   </section>
 
-  <!-- Mitten: detaljer -->
   <section class="details">
     <h1 class="product-title"><%= name %></h1>
 
     <div class="meta">
-      <div><span class="muted">Artikelnummer:</span> <%= item.getId() %></div>
-      <div><span class="muted">Kategorier:</span>
+      <div><span class="muted">SKU:</span> <%= item.getId() %></div>
+      <div><span class="muted">Categories:</span>
         <%
           java.util.List<com.werkstrom.distinfolab1.bo.ItemCategory> cats = item.getCategories();
           if (cats == null || cats.isEmpty()) {
@@ -101,33 +100,31 @@
     </div>
 
     <div class="spec">
-      <h3>Om denna artikel</h3>
+      <h3>About this item</h3>
       <p><%= description %></p>
     </div>
   </section>
 
-  <!-- Höger: köpbox -->
   <aside class="buybox card">
     <div class="buy-price">
-      <div class="amount"><span class="big"><%= Math.round(price) %></span> kr</div>
+      <div class="amount"><span class="big"><%= Math.round(price) %></span> SEK</div>
     </div>
 
     <div class="stock">
       <div class="<%= stockClass %>"><%= stockText %></div>
     </div>
 
-    <!-- TODO: Byt till /cart/add servlet senare -->
     <form action="<%= request.getContextPath() %>/cart/add" method="post" class="stack">
       <input type="hidden" name="productId" value="<%= item.getId() %>">
       <input type="hidden" name="name" value="<%= name %>">
       <input type="hidden" name="price" value="<%= price %>">
 
-      <label>Antal
+      <label>Quantity
         <select name="qty" <%= stock <= 0 ? "disabled" : "" %>>
           <%
             if (stock <= 0) {
           %>
-              <option value="0" disabled>Slut i lager</option>
+              <option value="0" disabled>Out of stock</option>
           <%
             } else {
                 for (int i = 1; i <= maxSelectable; i++) {
@@ -145,25 +142,25 @@
             out.print("disabled class='btn-disabled'");
         }
       %>>
-        Lägg till i kundvagn
+        Add to cart
       </button>
     </form>
 
     <%
       if (stock > 0 && stock <= 10) {
     %>
-      <div class="small-muted">Endast <strong><%= stock %></strong> kvar.</div>
+      <div class="small-muted">Only <strong><%= stock %></strong> left.</div>
     <%
       } else if (stock > 10) {
     %>
-      <div class="small-muted">Välj upp till 10 åt gången.</div>
+      <div class="small-muted">You can select up to 10 at a time.</div>
     <%
       }
     %>
   </aside>
 
 <%
-  } // end else item != null
+  }
 %>
 </main>
 

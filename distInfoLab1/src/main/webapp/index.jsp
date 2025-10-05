@@ -2,9 +2,8 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ page import="com.werkstrom.distinfolab1.bo.facades.ItemFacade" %>
 <%@ page import="com.werkstrom.distinfolab1.ui.ItemInfo" %>
-
 <!DOCTYPE html>
-<html lang="sv">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <title>MiniShop</title>
@@ -15,21 +14,35 @@
 <%@ include file="/WEB-INF/jspf/header.jspf" %>
 
 <%
-  // Läs filter från query
-  String q = request.getParameter("q");               // text-sökning
-  String catIdParam = request.getParameter("catId");  // numerisk kategori-id (valfritt)
+  String q = request.getParameter("q");
+  String catIdParam = request.getParameter("catId");
+  String categoryName = request.getParameter("category"); // legacy textual filter (sv/en)
+
   Integer catId = null;
+
   if (catIdParam != null) {
       try {
-          catId = Integer.valueOf(catIdParam);
-      } catch (NumberFormatException ignored) { }
+          int parsed = Integer.parseInt(catIdParam);
+          if (parsed > 0) catId = parsed;
+      } catch (NumberFormatException ignored) {}
+  }
+
+  // Optional: accept English names as well (fallback)
+  if (catId == null && categoryName != null) {
+      String c = categoryName.trim().toLowerCase();
+      if ("electronics".equals(c) || "elektronik".equals(c)) catId = 1;
+      else if ("home & kitchen".equals(c) || "hem & kök".equals(c)) catId = 2;
+      else if ("video games & consoles".equals(c) || "tv-spel & konsoler".equals(c)) catId = 3;
+      else if ("books".equals(c) || "böcker".equals(c)) catId = 4;
+      else if ("toys & games".equals(c) || "leksaker & spel".equals(c)) catId = 5;
+      else if ("sport & outdoor".equals(c)) catId = 6;
+      else if ("bygg, el & verktyg".equals(c) || "tools".equals(c)) catId = 7;
   }
 
   java.util.List<ItemInfo> items = java.util.Collections.emptyList();
   String loadError = null;
 
   try {
-      // Hämta från facaden (true = endast i lager; byt till false om du vill visa slut)
       items = ItemFacade.search(q, catId, false);
   } catch (Exception e) {
       loadError = e.getMessage();
@@ -37,41 +50,50 @@
 %>
 
 <main class="container">
-  <h1>Produkter</h1>
+  <h1>Products</h1>
+
+  <%
+    if (catId != null) {
+  %>
+      <p class="muted">Filter: <strong>Category #<%= catId %></strong></p>
+  <%
+    } else if (q != null && !q.isEmpty()) {
+  %>
+      <p class="muted">Search: <strong><%= q %></strong></p>
+  <%
+    }
+  %>
 
   <%
     if (loadError != null) {
   %>
-      <p class="muted">Kunde inte ladda produkter: <%= loadError %></p>
+      <p class="muted">Could not load products: <%= loadError %></p>
   <%
     } else if (items == null || items.isEmpty()) {
   %>
-      <p class="muted">Inga produkter hittades.</p>
+      <p class="muted">No products found.</p>
   <%
     } else {
   %>
       <section class="grid">
         <%
           for (ItemInfo it : items) {
-              String statusText = "Slut";
+              String statusText = "Out of stock";
               String mutedClass = "muted";
               if (it.getStock() > 10) {
-                  statusText = "I lager";
+                  statusText = "In stock";
               } else if (it.getStock() > 0) {
-                  statusText = "Få kvar";
+                  statusText = "Low stock";
               }
-
-              String imgName = "placeholder.jpg"; // Byt när du har bildfält i DB
-              String nameEsc = it.getName();      // Enkelt tills vidare
         %>
           <article class="card">
             <a href="<%= request.getContextPath() %>/item.jsp?id=<%= it.getId() %>">
-              <img src="<%= request.getContextPath() %>/images/<%= imgName %>" alt="<%= nameEsc %>" class="thumb">
+              <img src="<%= request.getContextPath() %>/images/placeholder.jpg" alt="<%= it.getName() %>" class="thumb">
             </a>
             <h3>
-              <a href="<%= request.getContextPath() %>/item.jsp?id=<%= it.getId() %>"><%= nameEsc %></a>
+              <a href="<%= request.getContextPath() %>/item.jsp?id=<%= it.getId() %>"><%= it.getName() %></a>
             </h3>
-            <p class="price"><%= Math.round(it.getPrice()) %> kr</p>
+            <p class="price"><%= Math.round(it.getPrice()) %> SEK</p>
             <p class="<%= mutedClass %>"><%= statusText %></p>
           </article>
         <%

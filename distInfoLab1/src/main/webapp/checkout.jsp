@@ -1,14 +1,12 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%
-    // --- Workaround/temporär “betalning” ---
     boolean paid = false;
     String paymentMethod = null;
 
     if ("POST".equalsIgnoreCase(request.getMethod())) {
-        paymentMethod = request.getParameter("payment"); // "card" eller "invoice"
+        paymentMethod = request.getParameter("payment");
         if (paymentMethod == null || paymentMethod.isBlank()) paymentMethod = "card";
 
-        // Använd JSP:s inbyggda 'session' (implicit object) – skapa om den saknas
         if (session == null) {
             session = request.getSession(true);
         }
@@ -26,7 +24,6 @@
             session.setAttribute("lastOrderTime", new java.util.Date());
         }
 
-        // Töm kundvagnens badge (simulerar att varorna lades i en order)
         session.setAttribute("cartCount", 0);
 
         paid = true;
@@ -34,10 +31,10 @@
     }
 %>
 <!DOCTYPE html>
-<html lang="sv">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Kassa</title>
+  <title>Checkout</title>
   <link rel="stylesheet" href="<%= request.getContextPath() %>/css/style.css?v=9">
 </head>
 <body>
@@ -45,58 +42,53 @@
 <%@ include file="/WEB-INF/jspf/header.jspf" %>
 
 <main class="container">
-  <h1>Kassa</h1>
+  <h1>Checkout</h1>
 
   <%
     if (paid) {
   %>
-    <!-- Bekräftelsevy efter "betalning" -->
     <section class="card" style="max-width: 560px;">
-      <h2>Tack för din beställning!</h2>
-      <p>Din betalningsmetod: <strong><%= "invoice".equals(paymentMethod) ? "Faktura" : "Kort" %></strong></p>
-      <p class="muted">Detta är en demo – senare kommer ordern sparas i databasen och visas under Ordrar.</p>
+      <h2>Thank you for your order!</h2>
+      <p>Payment method: <strong><%= "invoice".equals(paymentMethod) ? "Invoice" : "Card" %></strong></p>
+      <p class="muted">This is a demo — later the order will be stored in the database and shown under Orders.</p>
 
       <div class="row" style="margin-top:12px;">
         <a href="<%= request.getContextPath() %>/order.jsp">
-          <button type="button">Visa mina ordrar</button>
+          <button type="button">View my orders</button>
         </a>
         <a href="<%= request.getContextPath() %>/index.jsp">
-          <button type="button" class="btn-secondary">Fortsätt handla</button>
+          <button type="button" class="btn-secondary">Continue shopping</button>
         </a>
       </div>
     </section>
   <%
     } else {
   %>
-    <!-- Formulärvy innan betalning -->
     <section class="grid-2">
       <article class="card">
-        <h2>Betalning</h2>
+        <h2>Payment</h2>
         <form method="post" class="stack">
           <label class="row" style="align-items:center;">
             <input type="radio" name="payment" value="card" checked>
-            <span>Kort</span>
+            <span>Card</span>
           </label>
           <label class="row" style="align-items:center;">
             <input type="radio" name="payment" value="invoice">
-            <span>Faktura</span>
+            <span>Invoice</span>
           </label>
 
-          <!-- TODO: När riktig logik finns, visa/validera fält baserat på valt betalningssätt -->
-
-          <button type="submit">Betala</button>
+          <button type="submit">Pay</button>
         </form>
       </article>
 
       <aside class="card">
-        <h2>Orderöversikt</h2>
-        <p class="muted">Här kan du visa radartiklar från kundvagnen när modellen är klar.</p>
-        <!-- TODO: Iterera över sessionens cart-items när BO/DB är på plats -->
+        <h2>Order summary</h2>
+        <p class="muted">Display cart line items here when the model is ready.</p>
         <ul style="margin:0; padding-left:18px;">
-          <li>Exempelprodukt 1 (x1)</li>
-          <li>Exempelprodukt 2 (x2)</li>
+          <li>Sample product 1 (x1)</li>
+          <li>Sample product 2 (x2)</li>
         </ul>
-        <p style="margin-top:8px;"><strong>Summa:</strong> (fylls i senare)</p>
+        <p style="margin-top:8px;"><strong>Total:</strong> (to be filled later)</p>
       </aside>
     </section>
   <%

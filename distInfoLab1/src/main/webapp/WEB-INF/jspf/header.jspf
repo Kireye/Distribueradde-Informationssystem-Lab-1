@@ -1,9 +1,9 @@
+<%@ include file="/WEB-INF/jspf/db-init.jspf" %>
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
-<%@ page import="com.werkstrom.distinfolab1.bo.facades.UserFacade" %>
+<%@ page import="com.werkstrom.distinfolab1.ui.UserInfo" %>
 
 <link rel="stylesheet" href="css/style.css?v=6">
 
-<%@ page import="com.werkstrom.distinfolab1.ui.UserInfo" %>
 <%
   UserInfo currentUser = null;
   if (session != null) {
@@ -18,48 +18,46 @@
   if (currentUser != null) {
       displayName = currentUser.getName();
       if (currentUser.getRole() != null) {
-          // enum har getRoleName()
           displayRole = currentUser.getRole().getRoleName();
       }
   }
 %>
 
-<!-- TOPP: logo (hem), sökfält, konto + kundvagn -->
 <header class="site-header">
   <div class="container topbar">
 
-    <!-- Logo -> Hem -->
+    <!-- Brand -> Home -->
     <a class="brand" href="<%= request.getContextPath() %>/index.jsp">MiniShop</a>
 
-    <!-- Sök (GET). Byt action till /products/search när controller finns -->
+    <!-- Search (GET). Replace action when controller exists -->
     <form class="search" action="<%= request.getContextPath() %>/index.jsp" method="get">
-      <input type="text" name="q" placeholder="Sök bland produkter…" value="${param.q}">
-      <button type="submit" aria-label="Sök">🔍</button>
+      <input type="text" name="q" placeholder="Search products…" value="${param.q}">
+      <button type="submit" aria-label="Search">🔍</button>
     </form>
 
-    <!-- Actions (konto + kundvagn) -->
+    <!-- Actions (account + cart) -->
     <div class="actions">
 
-      <!-- Konto -->
+      <!-- Account -->
       <div class="action">
         <div class="links">
           <%
             if (currentUser == null) {
           %>
-              <a href="<%= request.getContextPath() %>/login.jsp">Logga in</a>
-              <a class="sub" href="<%= request.getContextPath() %>/register.jsp">Skapa konto</a>
+              <a href="<%= request.getContextPath() %>/login.jsp">Login</a>
+              <a class="sub" href="<%= request.getContextPath() %>/register.jsp">Create account</a>
           <%
             } else {
           %>
-              <!-- Visar namn + roll -->
+              <!-- Show name + role -->
               <span class="user-pill">
                 <span class="user-name"><%= displayName %></span>
                 <span class="role-badge"><%= displayRole %></span>
               </span>
 
-              <!-- Logga ut (POST) -->
+              <!-- Logout (POST) -->
               <form action="<%= request.getContextPath() %>/logout.jsp" method="post" style="display:inline;">
-                <button type="submit" class="linklike">Logga ut</button>
+                <button type="submit" class="linklike">Logout</button>
               </form>
           <%
             }
@@ -67,13 +65,12 @@
         </div>
       </div>
 
-      <!-- Kundvagn + Ordrar -->
+      <!-- Cart + Orders -->
       <%
         if (currentUser != null) {
       %>
-        <!-- Visas bara när användaren är inloggad -->
         <div class="action">
-          <a class="icon" href="<%= request.getContextPath() %>/cart.jsp" aria-label="Korg">
+          <a class="icon" href="<%= request.getContextPath() %>/cart.jsp" aria-label="Cart">
             <svg viewBox="0 0 24 24" aria-hidden="true" class="cart-svg">
               <path d="M7 6h14l-1.5 9H8.6L7 6Zm-3 0h2l2 12h11M9 21a1 1 0 1 0 0-2
                 1 1 0 0 0 0 2Zm8 0a1 1 0 1 0 0-2
@@ -85,16 +82,15 @@
 
         <div class="action">
           <a class="link" href="<%= request.getContextPath() %>/order.jsp">
-            Ordrar
+            Orders
           </a>
         </div>
       <%
         } else {
       %>
-        <!-- Visas endast när användaren inte är inloggad -->
         <div class="action">
           <a class="muted" href="<%= request.getContextPath() %>/login.jsp">
-            Logga in för att se varukorg och ordrar
+            Log in to see cart and orders
           </a>
         </div>
       <%
@@ -103,17 +99,17 @@
     </div>
   </div>
 
-  <!-- Kategori rad under sök -->
+  <!-- Category bar -->
   <nav class="catbar">
     <div class="container catbar-inner">
-      <a href="<%= request.getContextPath() %>/index.jsp?category=Elektronik">Elektronik</a>
-      <a href="<%= request.getContextPath() %>/index.jsp?category=Hem%20%26%20k%C3%B6k">Hem &amp; kök</a>
-      <a href="<%= request.getContextPath() %>/index.jsp?category=Presentkort">Presentkort</a>
-      <a href="<%= request.getContextPath() %>/index.jsp?category=TV-spel%20%26%20konsoler">TV-spel &amp; konsoler</a>
-      <a href="<%= request.getContextPath() %>/index.jsp?category=B%C3%B6cker">Böcker</a>
-      <a href="<%= request.getContextPath() %>/index.jsp?category=Leksaker%20%26%20spel">Leksaker &amp; spel</a>
-      <a href="<%= request.getContextPath() %>/index.jsp?category=Sport%20%26%20outdoor">Sport &amp; outdoor</a>
-      <a href="<%= request.getContextPath() %>/index.jsp?category=Bygg,%20el%20%26%20verktyg">Bygg, el &amp; verktyg</a>
+      <!-- Use catId to filter (1..7) to match DB Item_category IDs -->
+      <a href="<%= request.getContextPath() %>/index.jsp?catId=1">Electronics</a>
+      <a href="<%= request.getContextPath() %>/index.jsp?catId=2">Home &amp; Kitchen</a>
+      <a href="<%= request.getContextPath() %>/index.jsp?catId=3">Video Games &amp; Consoles</a>
+      <a href="<%= request.getContextPath() %>/index.jsp?catId=4">Books</a>
+      <a href="<%= request.getContextPath() %>/index.jsp?catId=5">Toys &amp; Games</a>
+      <a href="<%= request.getContextPath() %>/index.jsp?catId=6">Sport &amp; Outdoor</a>
+      <a href="<%= request.getContextPath() %>/index.jsp?catId=7">Tools</a>
     </div>
   </nav>
 </header>

@@ -1,9 +1,9 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <!DOCTYPE html>
-<html lang="sv">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Varukorg</title>
+  <title>Cart</title>
   <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
 </head>
 <body>
@@ -11,40 +11,40 @@
 <%@ include file="/WEB-INF/jspf/header.jspf" %>
 
 <main class="container">
-  <h1>Varukorg</h1>
+  <h1>Cart</h1>
 
   <table class="table">
     <thead>
       <tr>
-        <th>Produkt</th>
-        <th>Pris</th>
-        <th>Antal</th>
-        <th>Delsumma</th>
+        <th>Product</th>
+        <th>Price</th>
+        <th>Qty</th>
+        <th>Subtotal</th>
       </tr>
     </thead>
     <tbody>
       <tr>
-        <td>Exempelprodukt</td>
-        <td>199 kr</td>
+        <td>Sample product</td>
+        <td>199 SEK</td>
         <td>2</td>
-        <td>398 kr</td>
+        <td>398 SEK</td>
       </tr>
     </tbody>
     <tfoot>
       <tr>
-        <th colspan="3" class="right">Totalt</th>
-        <th>398 kr</th>
+        <th colspan="3" class="right">Total</th>
+        <th>398 SEK</th>
       </tr>
     </tfoot>
   </table>
 
   <div class="row gap">
     <form action="${pageContext.request.contextPath}/cart/clear" method="post">
-      <button type="submit" class="btn-secondary">Töm korg</button>
+      <button type="submit" class="btn-secondary">Clear cart</button>
     </form>
 
     <a href="<%= request.getContextPath() %>/checkout.jsp">
-      <button type="button">Till kassan</button>
+      <button type="button">Checkout</button>
     </a>
   </div>
 </main>
