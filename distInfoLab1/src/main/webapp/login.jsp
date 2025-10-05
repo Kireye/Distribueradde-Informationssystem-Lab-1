@@ -1,10 +1,80 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ page import="com.werkstrom.distinfolab1.bo.facades.UserFacade" %>
+<%@ page import="com.werkstrom.distinfolab1.ui.UserInfo" %>
+<%@ page import="com.werkstrom.distinfolab1.db.MySqlConnectionManager" %>
+
+<%@ include file="/WEB-INF/jspf/db-init.jspf" %>
+
+<%
+    // Tillfällig POST-hantering direkt i JSP (ersätts med Servlet senare)
+    if ("POST".equalsIgnoreCase(request.getMethod())) {
+        String email = request.getParameter("email");
+        String password = request.getParameter("password");
+
+        boolean hasError = false;
+        String errorMsg = null;
+
+        if (email == null || email.isEmpty()) {
+            hasError = true;
+            errorMsg = "E-post får inte vara tom.";
+        }
+
+        if (!hasError) {
+            if (password == null || password.isEmpty()) {
+                hasError = true;
+                errorMsg = "Lösenord får inte vara tomt.";
+            }
+        }
+
+        if (!hasError) {
+            try {
+                UserInfo user = UserFacade.login(email, password);
+
+                session.setAttribute("user", user);
+
+                // Räkna ihop cart-badge (summa av kvantiteter)
+                int cartCount = 0;
+                java.util.List<com.werkstrom.distinfolab1.bo.CartItem> items = user.getCart().getCartItems();
+                if (items != null) {
+                    for (int i = 0; i < items.size(); i++) {
+                        com.werkstrom.distinfolab1.bo.CartItem ci = items.get(i);
+                        if (ci != null) {
+                            cartCount = cartCount + ci.getQuantity();
+                        }
+                    }
+                }
+                session.setAttribute("cartCount", cartCount);
+
+                // VIKTIGT: MySqlUser.startTransaction() körs i getUser(...).
+                // Sätt tillbaka autocommit via commit (lägger ingen data, men återställer flaggan).
+                try {
+                    MySqlConnectionManager.commitTransaction();
+                } catch (Exception ignored) {
+                    // Om det inte fanns en aktiv transaktion ignorerar vi.
+                }
+
+                // Vid lyckad inloggning -> gå till ordrar
+                response.sendRedirect(request.getContextPath() + "/order.jsp");
+                return;
+            } catch (Exception ex) {
+                // Visa fel i samma sida
+                request.setAttribute("loginError", "Inloggningen misslyckades: " + ex.getMessage());
+                // För säkerhets skull: återställ autocommit om startTransaction sattes
+                try {
+                    MySqlConnectionManager.rollbackTransaction();
+                } catch (Exception ignored) { }
+            }
+        } else {
+            request.setAttribute("loginError", errorMsg);
+        }
+    }
+%>
 <!DOCTYPE html>
 <html lang="sv">
 <head>
   <meta charset="UTF-8">
   <title>Logga in</title>
-  <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
+  <link rel="stylesheet" href="<%= request.getContextPath() %>/css/style.css">
 </head>
 <body>
 
@@ -14,7 +84,16 @@
   <section class="auth-box card">
     <h1>Logga in</h1>
 
-    <form action="${pageContext.request.contextPath}/login" method="post" class="stack">
+    <%
+      Object err = request.getAttribute("loginError");
+      if (err != null) {
+    %>
+      <div class="alert error"><%= err %></div>
+    <%
+      }
+    %>
+
+    <form action="<%= request.getContextPath() %>/login.jsp" method="post" class="stack">
       <label>
         <span class="sr-only">E-post</span>
         <div class="input-icon">
@@ -39,7 +118,7 @@
     </form>
 
     <div class="auth-links center">
-      <a class="link" href="${pageContext.request.contextPath}/register.jsp">Bli medlem</a>
+      <a class="link" href="<%= request.getContextPath() %>/register.jsp">Bli medlem</a>
     </div>
   </section>
 </main>

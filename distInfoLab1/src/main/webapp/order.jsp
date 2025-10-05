@@ -10,21 +10,55 @@
 
 <%@ include file="/WEB-INF/jspf/header.jspf" %>
 
+<%@ page import="com.werkstrom.distinfolab1.ui.UserInfo" %>
+<%
+    UserInfo u = null;
+    if (session != null) {
+        Object o = session.getAttribute("user");
+        if (o instanceof UserInfo) {
+            u = (UserInfo) o;
+        }
+    }
+%>
+
 <main class="container">
   <h1>Mina ordrar</h1>
-  <p class="muted">
-    Låt OrderController kontrollera inloggning (t.ex. via <code>session.userEmail</code>).
-    Om inte inloggad → <code>response.sendRedirect("login.jsp")</code>.
-  </p>
 
-  <div class="card">
-    <h3>Order #12345</h3>
-    <p>Datum: 2025-10-04 • Summa: 398 kr • Status: Skickad</p>
-  </div>
-  <div class="card">
-    <h3>Order #12312</h3>
-    <p>Datum: 2025-09-21 • Summa: 249 kr • Status: Levererad</p>
-  </div>
+  <%
+    if (u == null) {
+  %>
+      <p>Du är inte inloggad.</p>
+      <p><a href="<%= request.getContextPath() %>/login.jsp">Gå till inloggning</a></p>
+  <%
+    } else {
+  %>
+      <div class="card">
+        <h3>Hej, <%= u.getName() %>!</h3>
+        <p class="muted">E-post: <%= u.getEmail() %></p>
+      </div>
+
+      <%
+        java.util.List<com.werkstrom.distinfolab1.bo.Order> orders = u.getOrders();
+        if (orders == null || orders.isEmpty()) {
+      %>
+          <p>Du har inga ordrar ännu.</p>
+      <%
+        } else {
+            for (int i = 0; i < orders.size(); i++) {
+                com.werkstrom.distinfolab1.bo.Order o = orders.get(i);
+      %>
+          <div class="card">
+            <h3>Order #<%= o.getOrderId() %></h3>
+            <p>Status: <%= o.getStatus() %></p>
+            <p>Antal rader: <%= o.getNrOfItems() %></p>
+          </div>
+      <%
+            }
+        }
+      %>
+  <%
+    }
+  %>
 </main>
 
 </body>

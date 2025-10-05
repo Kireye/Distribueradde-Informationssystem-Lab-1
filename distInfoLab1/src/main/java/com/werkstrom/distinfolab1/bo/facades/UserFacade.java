@@ -1,0 +1,131 @@
+package com.werkstrom.distinfolab1.bo.facades;
+
+import com.werkstrom.distinfolab1.db.MySqlConnectionManager;
+import com.werkstrom.distinfolab1.db.MySqlUser;
+import com.werkstrom.distinfolab1.db.exceptions.ConnectionException;
+import com.werkstrom.distinfolab1.db.exceptions.QueryException;
+import com.werkstrom.distinfolab1.db.exceptions.TransactionException;
+import com.werkstrom.distinfolab1.ui.UserInfo;
+
+public final class UserFacade {
+
+    private UserFacade() {
+
+    }
+
+    public static UserInfo login(String email, String password) throws ConnectionException, QueryException, TransactionException {
+        if (email == null) {
+            throw new IllegalArgumentException("email cannot be null");
+        }
+        if (password == null) {
+            throw new IllegalArgumentException("password cannot be null");
+        }
+
+        if (email.isEmpty()) {
+            throw new IllegalArgumentException("email cannot be empty");
+        }
+        if (password.isEmpty()) {
+            throw new IllegalArgumentException("password cannot be empty");
+        }
+
+        if (!MySqlConnectionManager.isConnected()) {
+            throw new ConnectionException("No database connection. Initialize connection before calling login.");
+        }
+
+        MySqlUser user = MySqlUser.getUser(email, password);
+
+        return new UserInfo(
+                user.getId(),
+                user.getRole(),
+                user.getName(),
+                user.getEmail(),
+                user.getCart(),
+                user.getOrders()
+        );
+    }
+
+    public static void addToCart(int userId, int itemId, int quantity) throws ConnectionException, QueryException {
+        if (userId <= 0) {
+            throw new IllegalArgumentException("userId must be greater than 0");
+        }
+        if (itemId <= 0) {
+            throw new IllegalArgumentException("itemId must be greater than 0");
+        }
+        if (quantity <= 0) {
+            throw new IllegalArgumentException("quantity must be greater than 0");
+        }
+
+        if (!MySqlConnectionManager.isConnected()) {
+            throw new ConnectionException("No database connection.");
+        }
+
+        MySqlUser.addToCart(userId, itemId, quantity);
+    }
+
+    public static void addQuantityToCart(int userId, int itemId, int quantity) throws ConnectionException, QueryException {
+        if (userId <= 0) {
+            throw new IllegalArgumentException("userId must be greater than 0");
+        }
+        if (itemId <= 0) {
+            throw new IllegalArgumentException("itemId must be greater than 0");
+        }
+        if (quantity <= 0) {
+            throw new IllegalArgumentException("quantity must be greater than 0");
+        }
+
+        if (!MySqlConnectionManager.isConnected()) {
+            throw new ConnectionException("No database connection.");
+        }
+
+        MySqlUser.addQuantityToCart(userId, itemId, quantity);
+    }
+
+    public static void removeQuantityFromCart(int userId, int itemId, int quantity) throws ConnectionException, QueryException {
+        if (userId <= 0) {
+            throw new IllegalArgumentException("userId must be greater than 0");
+        }
+        if (itemId <= 0) {
+            throw new IllegalArgumentException("itemId must be greater than 0");
+        }
+        if (quantity <= 0) {
+            throw new IllegalArgumentException("quantity must be greater than 0");
+        }
+
+        if (!MySqlConnectionManager.isConnected()) {
+            throw new ConnectionException("No database connection.");
+        }
+
+        MySqlUser.removeQuantityFromCart(userId, itemId, quantity);
+    }
+
+    public static void removeFromCart(int userId, int itemId) throws ConnectionException, QueryException {
+        if (userId <= 0) {
+            throw new IllegalArgumentException("userId must be greater than 0");
+        }
+        if (itemId <= 0) {
+            throw new IllegalArgumentException("itemId must be greater than 0");
+        }
+
+        if (!MySqlConnectionManager.isConnected()) {
+            throw new ConnectionException("No database connection.");
+        }
+
+        MySqlUser.removeFromCart(userId, itemId);
+    }
+
+    public static void emptyCart(int userId) throws ConnectionException, QueryException {
+        if (userId <= 0) {
+            throw new IllegalArgumentException("userId must be greater than 0");
+        }
+
+        if (!MySqlConnectionManager.isConnected()) {
+            throw new ConnectionException("No database connection.");
+        }
+
+        MySqlUser.emptyCart(userId);
+    }
+
+    public static UserInfo reloadByCredentials(String email, String password) throws ConnectionException, QueryException, TransactionException {
+        return login(email, password);
+    }
+}

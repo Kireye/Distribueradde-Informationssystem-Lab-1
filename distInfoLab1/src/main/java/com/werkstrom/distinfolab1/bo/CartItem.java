@@ -1,8 +1,5 @@
 package com.werkstrom.distinfolab1.bo;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class CartItem {
     private int quantity;
     private final Item item;
