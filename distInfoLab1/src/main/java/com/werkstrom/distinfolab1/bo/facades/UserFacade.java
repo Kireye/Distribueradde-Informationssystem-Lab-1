@@ -1,11 +1,20 @@
 package com.werkstrom.distinfolab1.bo.facades;
 
+import com.werkstrom.distinfolab1.bo.CartItem;
+import com.werkstrom.distinfolab1.bo.Item;
+import com.werkstrom.distinfolab1.bo.ShoppingCart;
 import com.werkstrom.distinfolab1.db.MySqlConnectionManager;
 import com.werkstrom.distinfolab1.db.MySqlUser;
 import com.werkstrom.distinfolab1.db.exceptions.ConnectionException;
 import com.werkstrom.distinfolab1.db.exceptions.QueryException;
 import com.werkstrom.distinfolab1.db.exceptions.TransactionException;
+import com.werkstrom.distinfolab1.ui.CartItemInfo;
+import com.werkstrom.distinfolab1.ui.ItemInfo;
+import com.werkstrom.distinfolab1.ui.ShoppingCartInfo;
 import com.werkstrom.distinfolab1.ui.UserInfo;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public final class UserFacade {
 
@@ -57,6 +66,29 @@ public final class UserFacade {
         MySqlConnectionManager.closeConnection();
         MySqlConnectionManager.initializeConnection("guest", "guest");
         System.out.println("guest");
+    }
+
+    public static ShoppingCartInfo getShoppingCart(int userId) throws ConnectionException, QueryException {
+        if (userId <= 0) throw new IllegalArgumentException("userId must be greater than 0");
+        if (!MySqlConnectionManager.isConnected()) throw new ConnectionException("No database connection.");
+
+        ShoppingCart cart = MySqlUser.getCart(userId);
+        List<CartItemInfo> lines = new ArrayList<>();
+
+        for (CartItem ci : cart.getCartItems()) {
+            Item it = ci.getItem();
+            ItemInfo ii = new ItemInfo(
+                    it.getId(),
+                    it.getName(),
+                    it.getDescription(),
+                    it.getPrice(),
+                    it.getStock(),
+                    it.getCategories()
+            );
+            lines.add(new CartItemInfo(ci.getQuantity(), ii));
+        }
+
+        return new ShoppingCartInfo(cart.getOwnerId(), lines);
     }
 
     public static void addToCart(int userId, int itemId, int quantity) throws ConnectionException, QueryException {

@@ -28,6 +28,10 @@ GRANT INSERT, UPDATE, DELETE
 ON online_store.Item_category_mapping
 TO 'staff'@'%';
 
+GRANT SELECT, INSERT, UPDATE, DELETE
+ON online_store.shopping_cart
+TO 'staff'@'%';
+
 GRANT SELECT
 ON online_store.*
 TO 'staff'@'%';

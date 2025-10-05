@@ -191,6 +191,67 @@ public class MySqlUser extends User {
         }
     }
 
+    public static ShoppingCart getCart(int userId) throws ConnectionException, QueryException {
+        if (userId <= 0) throw new IllegalArgumentException("User id must be greater than zero");
+        if (!MySqlConnectionManager.isConnected()) throw new ConnectionException("No connection established");
+
+        String query =
+                "SELECT " +
+                        "    sc.item_id, " +
+                        "    sc.quantity, " +
+                        "    i.name AS item_name, " +
+                        "    i.description, " +
+                        "    i.price, " +
+                        "    i.stock, " +
+                        "    icm.item_category_id, " +
+                        "    ic.name AS item_category_name " +
+                        "FROM Shopping_cart sc " +
+                        "JOIN Item i ON sc.item_id = i.item_id " +
+                        "LEFT JOIN Item_category_mapping icm ON i.item_id = icm.item_id " +
+                        "LEFT JOIN Item_category ic ON icm.item_category_id = ic.item_category_id " +
+                        "WHERE sc.user_id = ? " +
+                        "ORDER BY sc.item_id, icm.item_category_id;";
+
+        try (PreparedStatement statement = MySqlConnectionManager.createPreparedStatement(query)) {
+            statement.setInt(1, userId);
+            boolean hasResult = statement.execute();
+            if (!hasResult) return new ShoppingCart(userId, new ArrayList<>());
+
+            ArrayList<CartItem> cartItems = new ArrayList<>();
+            ResultSet rs = statement.getResultSet();
+
+            int lastItemId = 0;
+            while (rs.next()) {
+                int itemId = rs.getInt("item_id");
+                if (itemId == 0) continue;
+
+                if (itemId != lastItemId) {
+                    String itemName = rs.getString("item_name");
+                    String description = rs.getString("description");
+                    float price = rs.getFloat("price");
+                    int stock = rs.getInt("stock");
+                    int quantity = rs.getInt("quantity");
+
+                    Item newItem = new Item(itemId, itemName, description, price, stock, null);
+                    cartItems.add(new CartItem(quantity, newItem));
+                    lastItemId = itemId;
+                }
+
+                int categoryId = rs.getInt("item_category_id");
+                if (categoryId != 0) {
+                    CartItem lastCartItem = cartItems.get(cartItems.size() - 1);
+                    String categoryName = rs.getString("item_category_name");
+                    lastCartItem.getItem().addCategory(new ItemCategory(categoryId, categoryName));
+                }
+            }
+
+            return new ShoppingCart(userId, cartItems);
+        }
+        catch (SQLException e) {
+            throw new QueryException("Failed to load shopping cart: " + e.getMessage());
+        }
+    }
+
     public static void addToCart(int userId, int itemId, int quantity) throws QueryException, ConnectionException {
         if (userId <= 0) throw new IllegalArgumentException("User id must be greater than zero");
         if (quantity <= 0) throw new IllegalArgumentException("Quantity must be greater than zero");

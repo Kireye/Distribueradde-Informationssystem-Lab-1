@@ -114,8 +114,11 @@
       <div class="<%= stockClass %>"><%= stockText %></div>
     </div>
 
-    <form action="<%= request.getContextPath() %>/cart-add.jsp" method="post" class="stack">
+    <form action="<%= request.getContextPath() %>/cart-update.jsp" method="post" class="stack">
+      <input type="hidden" name="op" value="add"> <!-- 👈 detta saknas -->
       <input type="hidden" name="productId" value="<%= item.getId() %>">
+
+      <!-- dessa behövs inte för själva serverlogiken, kan tas bort om du vill -->
       <input type="hidden" name="name" value="<%= name %>">
       <input type="hidden" name="price" value="<%= price %>">
 
@@ -129,7 +132,7 @@
             } else {
                 for (int i = 1; i <= maxSelectable; i++) {
           %>
-                  <option value="<%= i %>"><%= i %></option>
+                <option value="<%= i %>"><%= i %></option>
           <%
                 }
             }
@@ -137,11 +140,7 @@
         </select>
       </label>
 
-      <button type="submit" <%
-        if (stock <= 0) {
-            out.print("disabled class='btn-disabled'");
-        }
-      %>>
+      <button type="submit" <%= stock <= 0 ? "disabled class='btn-disabled'" : "" %>>
         Add to cart
       </button>
     </form>
@@ -157,8 +156,25 @@
     <%
       }
     %>
-  </aside>
 
+    <%
+      String added = request.getParameter("added");
+      String addErr = request.getParameter("adderror");
+      if ("1".equals(added)) {
+    %>
+      <section class="card" style="margin-bottom:12px;">
+        <strong>Added to cart.</strong>
+      </section>
+    <%
+      } else if (addErr != null) {
+    %>
+      <section class="card" style="margin-bottom:12px;">
+        <strong>Could not add to cart:</strong> <%= addErr %>
+      </section>
+    <%
+      }
+    %>
+  </aside>
 <%
   }
 %>
