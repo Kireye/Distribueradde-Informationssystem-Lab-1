@@ -23,7 +23,6 @@ public class MySqlUser extends User {
     public static MySqlUser getUser(String email, String password) throws QueryException, ConnectionException, TransactionException {
         email = email.trim().toLowerCase();
         password = password.trim();
-        MySqlUser mySqlUser = null;
 
         String query =
                         "SELECT " +
