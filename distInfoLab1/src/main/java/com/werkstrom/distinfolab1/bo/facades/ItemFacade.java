@@ -1,5 +1,7 @@
-package com.werkstrom.distinfolab1.bo;
+package com.werkstrom.distinfolab1.bo.facades;
 
+import com.werkstrom.distinfolab1.bo.Item;
+import com.werkstrom.distinfolab1.bo.ItemCategory;
 import com.werkstrom.distinfolab1.bo.enums.UserRole;
 import com.werkstrom.distinfolab1.ui.ItemInfo;
 
