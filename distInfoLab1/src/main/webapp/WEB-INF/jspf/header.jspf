@@ -2,6 +2,27 @@
 
 <link rel="stylesheet" href="css/style.css?v=6">
 
+<%@ page import="com.werkstrom.distinfolab1.ui.UserInfo" %>
+<%
+  UserInfo currentUser = null;
+  if (session != null) {
+      Object o = session.getAttribute("user");
+      if (o instanceof UserInfo) {
+          currentUser = (UserInfo) o;
+      }
+  }
+
+  String displayName = null;
+  String displayRole = null;
+  if (currentUser != null) {
+      displayName = currentUser.getName();
+      if (currentUser.getRole() != null) {
+          // enum har getRoleName()
+          displayRole = currentUser.getRole().getRoleName();
+      }
+  }
+%>
+
 <!-- TOPP: logo (hem), sökfält, konto + kundvagn -->
 <header class="site-header">
   <div class="container topbar">
@@ -20,55 +41,64 @@
 
       <!-- Konto -->
       <div class="action">
-        <a class="icon" href="<%= request.getContextPath() %>/login.jsp" aria-label="Konto">
-          <!-- user icon -->
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-5.33 0-8 2.67-8 5v1h16v-1c0-2.33-2.67-5-8-5Z"/>
-          </svg>
-        </a>
-        <div class="links">
-          <a href="<%= request.getContextPath() %>/login.jsp">Logga in</a>
-          <a class="sub" href="<%= request.getContextPath() %>/register.jsp">Skapa konto</a>
-        </div>
-      </div>
-
-      <!-- Kundvagn -->
-      <div class="action">
-        <a class="icon" href="<%= request.getContextPath() %>/cart.jsp" aria-label="Korg">
-          <!-- cart icon -->
-          <svg viewBox="0 0 24 24" aria-hidden="true" class="cart-svg">
-            <path d="M7 6h14l-1.5 9H8.6L7 6Zm-3 0h2l2 12h11M9 21a1 1 0 1 0 0-2
-              1 1 0 0 0 0 2Zm8 0a1 1 0 1 0 0-2
-              1 1 0 0 0 0 2Z"/>
-          </svg>
-          <span class="badge">
-            <%= request.getSession(false) != null &&
-                request.getSession(false).getAttribute("cartCount") != null
-                ? request.getSession(false).getAttribute("cartCount")
-                : 0 %>
-          </span>
-        </a>
-        <div class="links">
-          <a href="<%= request.getContextPath() %>/cart.jsp"></a>
-        </div>
-      </div>
-
-      <!-- Ordrar -->
-      <div class="action">
         <div class="links">
           <%
-            // === TODO: Lägg in riktig inloggningskontroll senare ===
-            // Exempel (senare):
-            // HttpSession session = request.getSession(false);
-            // boolean loggedIn = (session != null && session.getAttribute("user") != null);
-            // String linkTarget = loggedIn ? "order.jsp" : "login.jsp";
-            // För nu: gå direkt till order.jsp
+            if (currentUser == null) {
           %>
-          <a href="<%= request.getContextPath() %>/order.jsp">Ordrar</a>
+              <a href="<%= request.getContextPath() %>/login.jsp">Logga in</a>
+              <a class="sub" href="<%= request.getContextPath() %>/register.jsp">Skapa konto</a>
+          <%
+            } else {
+          %>
+              <!-- Visar namn + roll -->
+              <span class="user-pill">
+                <span class="user-name"><%= displayName %></span>
+                <span class="role-badge"><%= displayRole %></span>
+              </span>
+
+              <!-- Logga ut (POST) -->
+              <form action="<%= request.getContextPath() %>/logout.jsp" method="post" style="display:inline;">
+                <button type="submit" class="linklike">Logga ut</button>
+              </form>
+          <%
+            }
+          %>
         </div>
       </div>
 
+      <!-- Kundvagn + Ordrar -->
+      <%
+        if (currentUser != null) {
+      %>
+        <!-- Visas bara när användaren är inloggad -->
+        <div class="action">
+          <a class="icon" href="<%= request.getContextPath() %>/cart.jsp" aria-label="Korg">
+            <svg viewBox="0 0 24 24" aria-hidden="true" class="cart-svg">
+              <path d="M7 6h14l-1.5 9H8.6L7 6Zm-3 0h2l2 12h11M9 21a1 1 0 1 0 0-2
+                1 1 0 0 0 0 2Zm8 0a1 1 0 1 0 0-2
+                1 1 0 0 0 0 2Z"/>
+            </svg>
+            <span class="cart-text"></span>
+          </a>
+        </div>
 
+        <div class="action">
+          <a class="link" href="<%= request.getContextPath() %>/order.jsp">
+            Ordrar
+          </a>
+        </div>
+      <%
+        } else {
+      %>
+        <!-- Visas endast när användaren inte är inloggad -->
+        <div class="action">
+          <a class="muted" href="<%= request.getContextPath() %>/login.jsp">
+            Logga in för att se varukorg och ordrar
+          </a>
+        </div>
+      <%
+        }
+      %>
     </div>
   </div>
 

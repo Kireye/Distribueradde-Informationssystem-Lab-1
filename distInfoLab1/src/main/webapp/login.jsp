@@ -32,28 +32,6 @@
 
                 session.setAttribute("user", user);
 
-                // Räkna ihop cart-badge (summa av kvantiteter)
-                int cartCount = 0;
-                java.util.List<com.werkstrom.distinfolab1.bo.CartItem> items = user.getCart().getCartItems();
-                if (items != null) {
-                    for (int i = 0; i < items.size(); i++) {
-                        com.werkstrom.distinfolab1.bo.CartItem ci = items.get(i);
-                        if (ci != null) {
-                            cartCount = cartCount + ci.getQuantity();
-                        }
-                    }
-                }
-                session.setAttribute("cartCount", cartCount);
-
-                // VIKTIGT: MySqlUser.startTransaction() körs i getUser(...).
-                // Sätt tillbaka autocommit via commit (lägger ingen data, men återställer flaggan).
-                try {
-                    MySqlConnectionManager.commitTransaction();
-                } catch (Exception ignored) {
-                    // Om det inte fanns en aktiv transaktion ignorerar vi.
-                }
-
-                // Vid lyckad inloggning -> gå till ordrar
                 response.sendRedirect(request.getContextPath() + "/order.jsp");
                 return;
             } catch (Exception ex) {

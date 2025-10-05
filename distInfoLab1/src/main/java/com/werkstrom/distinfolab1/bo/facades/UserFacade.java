@@ -34,6 +34,12 @@ public final class UserFacade {
 
         MySqlUser user = MySqlUser.getUser(email, password);
 
+        MySqlConnectionManager.closeConnection();
+
+        MySqlConnectionManager.initializeConnection(user.getRole().getRoleName(), user.getRole().getRoleName());
+
+        System.out.println(user.getRole().getRoleName());
+
         return new UserInfo(
                 user.getId(),
                 user.getRole(),
@@ -42,6 +48,14 @@ public final class UserFacade {
                 user.getCart(),
                 user.getOrders()
         );
+    }
+
+    public static void logout() {
+        if (!MySqlConnectionManager.isConnected()) {
+            throw new ConnectionException("No database connection. Initialize connection before calling logout.");
+        }
+        MySqlConnectionManager.closeConnection();
+        MySqlConnectionManager.initializeConnection("guest", "guest");
     }
 
     public static void addToCart(int userId, int itemId, int quantity) throws ConnectionException, QueryException {
