@@ -25,4 +25,13 @@ class MySqlItemTest {
             System.out.println(item);
         }
     }
+
+    @Test
+    void getItemsByCategory() {
+        MySqlConnectionManager.initializeConnection("root", "MySQLRoot");
+        ArrayList<MySqlItem> result = (ArrayList<MySqlItem>) MySqlItem.getItemsByCategory(3, false);
+        for (MySqlItem item : result) {
+            System.out.println(item);
+        }
+    }
 }

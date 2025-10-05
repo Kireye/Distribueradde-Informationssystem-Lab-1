@@ -45,7 +45,6 @@ public class MySqlItem extends Item {
             statement.setInt(1, stockCriteria);
             boolean hasResult = statement.execute();
             if (!hasResult) throw new NoResultException("No items found");
-
             return getItemsFromResultSet(statement.getResultSet());
         }
         catch (SQLException e) {
@@ -54,8 +53,9 @@ public class MySqlItem extends Item {
     }
 
     public static List<MySqlItem> getItemsByName(String searchTerm, boolean inStockOnly) {
-        String query =
-                "SELECT " +
+        if (searchTerm == null || searchTerm.isEmpty()) throw new IllegalArgumentException("searchTerm cannot be null or empty");
+
+        String query = "SELECT " +
                 "    i.item_id " +
                 "    , i.name AS item_name " +
                 "    , i.description " +
@@ -63,17 +63,17 @@ public class MySqlItem extends Item {
                 "    , i.stock " +
                 "    , icm.item_category_id " +
                 "    , ic.name AS category_name " +
-                "FROM " +
-                    "Item i " +
+                "FROM  " +
+                "    Item i " +
+                "LEFT JOIN  " +
+                "        Item_category_mapping icm ON " +
+                "            i.item_id = icm.item_id " +
                 "LEFT JOIN " +
-                "    Item_category_mapping icm ON " +
-                "        i.item_id = icm.item_id " +
-                "LEFT JOIN " +
-                "    Item_category ic ON " +
-                "        icm.item_category_id = ic.item_category_id " +
+                "        Item_category ic ON " +
+                "            icm.item_category_id = ic.item_category_id " +
                 "WHERE " +
-                "    LOWER(i.name) LIKE LOWER(?) " +
-                "    AND i.stock >= ? " +
+                "    ic.item_category_id = 3 " +
+                "    AND i.stock >= 0 " +
                 "ORDER BY " +
                 "    i.item_id " +
                 "    , icm.item_category_id;";
@@ -83,12 +83,59 @@ public class MySqlItem extends Item {
             statement.setInt(2, inStockCriteria);
             boolean hasResult = statement.execute();
             if (!hasResult) throw new NoResultException("No items found");
-
             return getItemsFromResultSet(statement.getResultSet());
         }
         catch (SQLException e) {
             throw new QueryException("Failed to get items from database: " + e.getMessage());
         }
+    }
+
+    public static List<MySqlItem> getItemsByCategory(int categoryId, boolean inStockOnly) {
+        if (categoryId <= 0) throw new IllegalArgumentException("categoryId cannot be <= 0");
+
+        String query = 
+                "SELECT " +
+                "    i.item_id " +
+                "    , i.name AS item_name " +
+                "    , i.description " +
+                "    , i.price " +
+                "    , i.stock " +
+                "    , icm.item_category_id " +
+                "    , ic.name AS category_name " +
+                "FROM " +
+                "    Item i " +
+                "LEFT JOIN " +
+                "        Item_category_mapping icm ON " +
+                "            i.item_id = icm.item_id " +
+                "LEFT JOIN " +
+                "        Item_category ic ON " +
+                "            icm.item_category_id = ic.item_category_id " +
+                "WHERE " +
+                "    i.item_id IN ( " +
+                "        SELECT DISTINCT " +
+                "            icm.item_id " +
+                "        FROM " +
+                "            Item_category_mapping icm " +
+                "        WHERE " +
+                "            icm.item_category_id = ? " +
+                "    ) " +
+                "    AND i.stock >= ? " +
+                "ORDER BY " +
+                "    i.item_id " +
+                "    , icm.item_category_id;";
+
+        try (PreparedStatement statement = MySqlConnectionManager.createPreparedStatement(query)) {
+            int inStockCriteria = inStockOnly ? 1 : 0;
+            statement.setInt(1, categoryId);
+            statement.setInt(2, inStockCriteria);
+            boolean hasResult = statement.execute();
+            if (!hasResult) throw new NoResultException("No items found");
+            return getItemsFromResultSet(statement.getResultSet());
+        }
+        catch (SQLException e) {
+            throw new QueryException("Failed to get items from database: " + e.getMessage());
+        }
+
     }
 
     private static List<MySqlItem> getItemsFromResultSet(ResultSet resultSet) throws SQLException {
