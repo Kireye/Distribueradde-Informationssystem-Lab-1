@@ -56,6 +56,7 @@ public final class UserFacade {
         }
         MySqlConnectionManager.closeConnection();
         MySqlConnectionManager.initializeConnection("guest", "guest");
+        System.out.println("guest");
     }
 
     public static void addToCart(int userId, int itemId, int quantity) throws ConnectionException, QueryException {

@@ -52,6 +52,43 @@ public class MySqlItem extends Item {
         }
     }
 
+    public static MySqlItem getItemById(int itemId) {
+        if (itemId <= 0) {
+            throw new IllegalArgumentException("itemId must be > 0");
+        }
+
+        String query =
+                "SELECT " +
+                        "    i.item_id, " +
+                        "    i.name AS item_name, " +
+                        "    i.description, " +
+                        "    i.price, " +
+                        "    i.stock, " +
+                        "    icm.item_category_id, " +
+                        "    ic.name AS category_name " +
+                        "FROM Item i " +
+                        "LEFT JOIN Item_category_mapping icm ON i.item_id = icm.item_id " +
+                        "LEFT JOIN Item_category ic ON icm.item_category_id = ic.item_category_id " +
+                        "WHERE i.item_id = ? " +
+                        "ORDER BY icm.item_category_id;";
+
+        try (PreparedStatement statement = MySqlConnectionManager.createPreparedStatement(query)) {
+            statement.setInt(1, itemId);
+            boolean hasResult = statement.execute();
+            if (!hasResult) {
+                throw new NoResultException("No item found with id " + itemId);
+            }
+            List<MySqlItem> list = getItemsFromResultSet(statement.getResultSet());
+            if (list == null || list.isEmpty()) {
+                throw new NoResultException("No item found with id " + itemId);
+            }
+            return list.get(0);
+        }
+        catch (SQLException e) {
+            throw new QueryException("Failed to get item by id: " + e.getMessage());
+        }
+    }
+
     public static List<MySqlItem> getItemsByName(String searchTerm, boolean inStockOnly) {
         if (searchTerm == null || searchTerm.isEmpty()) throw new IllegalArgumentException("searchTerm cannot be null or empty");
 
@@ -72,11 +109,12 @@ public class MySqlItem extends Item {
                 "        Item_category ic ON " +
                 "            icm.item_category_id = ic.item_category_id " +
                 "WHERE " +
-                "    ic.item_category_id = 3 " +
-                "    AND i.stock >= 0 " +
+                "    i.name LIKE ?" +
+                "    AND i.stock >= ? " +
                 "ORDER BY " +
                 "    i.item_id " +
                 "    , icm.item_category_id;";
+
         try (PreparedStatement statement = MySqlConnectionManager.createPreparedStatement(query)) {
             int inStockCriteria = inStockOnly ? 1 : 0;
             statement.setString(1, "%" + searchTerm + "%");

@@ -51,7 +51,7 @@ TO 'customer'@'%';
 
 GRANT SELECT
 ON online_store.*
-TO 'staff'@'%';
+TO 'customer'@'%';
 
 
 -- GUEST

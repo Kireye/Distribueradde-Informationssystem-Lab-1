@@ -1,4 +1,8 @@
+<%@ include file="/WEB-INF/jspf/db-init.jspf" %>
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ page import="com.werkstrom.distinfolab1.bo.facades.ItemFacade" %>
+<%@ page import="com.werkstrom.distinfolab1.ui.ItemInfo" %>
+
 <!DOCTYPE html>
 <html lang="sv">
 <head>
@@ -10,47 +14,73 @@
 
 <%@ include file="/WEB-INF/jspf/header.jspf" %>
 
+<%
+  // Läs filter från query
+  String q = request.getParameter("q");               // text-sökning
+  String catIdParam = request.getParameter("catId");  // numerisk kategori-id (valfritt)
+  Integer catId = null;
+  if (catIdParam != null) {
+      try {
+          catId = Integer.valueOf(catIdParam);
+      } catch (NumberFormatException ignored) { }
+  }
+
+  java.util.List<ItemInfo> items = java.util.Collections.emptyList();
+  String loadError = null;
+
+  try {
+      // Hämta från facaden (true = endast i lager; byt till false om du vill visa slut)
+      items = ItemFacade.search(q, catId, false);
+  } catch (Exception e) {
+      loadError = e.getMessage();
+  }
+%>
+
 <main class="container">
   <h1>Produkter</h1>
-  <p class="muted">Klicka på en produkt för att se mer information och lägga till i kundvagnen.</p>
 
-  <section class="grid">
-    <!-- Produkt A -->
-    <article class="card">
-      <a href="${pageContext.request.contextPath}/item.jsp?id=A&name=AirPods%20Pro&price=2990&stock=12&category=Elektronik&image=airpods.jpg">
-        <img src="${pageContext.request.contextPath}/images/airpods.jpg" alt="AirPods Pro" class="thumb">
-      </a>
-      <h3>
-        <a href="${pageContext.request.contextPath}/item.jsp?id=A&name=AirPods%20Pro&price=2990&stock=12&category=Elektronik&image=airpods.jpg">AirPods Pro</a>
-      </h3>
-      <p class="price">2 990 kr</p>
-      <p class="muted">I lager</p>
-    </article>
+  <%
+    if (loadError != null) {
+  %>
+      <p class="muted">Kunde inte ladda produkter: <%= loadError %></p>
+  <%
+    } else if (items == null || items.isEmpty()) {
+  %>
+      <p class="muted">Inga produkter hittades.</p>
+  <%
+    } else {
+  %>
+      <section class="grid">
+        <%
+          for (ItemInfo it : items) {
+              String statusText = "Slut";
+              String mutedClass = "muted";
+              if (it.getStock() > 10) {
+                  statusText = "I lager";
+              } else if (it.getStock() > 0) {
+                  statusText = "Få kvar";
+              }
 
-    <!-- Produkt B -->
-    <article class="card">
-      <a href="${pageContext.request.contextPath}/item.jsp?id=B&name=Kaffemaskin%20Deluxe&price=1490&stock=5&category=Hem%20%26%20k%C3%B6k&image=espressomachine.jpg">
-        <img src="${pageContext.request.contextPath}/images/espressomachine.jpg" alt="Kaffemaskin Deluxe" class="thumb">
-      </a>
-      <h3>
-        <a href="${pageContext.request.contextPath}/item.jsp?id=B&name=Kaffemaskin%20Deluxe&price=1490&stock=5&category=Hem%20%26%20k%C3%B6k&image=espressomachine.jpg">Kaffemaskin Deluxe</a>
-      </h3>
-      <p class="price">1 490 kr</p>
-      <p class="muted">Få kvar</p>
-    </article>
-
-    <!-- Produkt C -->
-    <article class="card">
-      <a href="${pageContext.request.contextPath}/item.jsp?id=C&name=Barnspel%20Zoo&price=249&stock=0&category=Leksaker%20%26%20spel&image=zoopanic.jpg">
-        <img src="${pageContext.request.contextPath}/images/zoopanic.jpg" alt="Barnspel Zoo" class="thumb">
-      </a>
-      <h3>
-        <a href="${pageContext.request.contextPath}/item.jsp?id=C&name=Barnspel%20Zoo&price=249&stock=0&category=Leksaker%20%26%20spel&image=zoopanic.jpg">Barnspel Zoo</a>
-      </h3>
-      <p class="price">249 kr</p>
-      <p class="muted">Slut</p>
-    </article>
-  </section>
+              String imgName = "placeholder.jpg"; // Byt när du har bildfält i DB
+              String nameEsc = it.getName();      // Enkelt tills vidare
+        %>
+          <article class="card">
+            <a href="<%= request.getContextPath() %>/item.jsp?id=<%= it.getId() %>">
+              <img src="<%= request.getContextPath() %>/images/<%= imgName %>" alt="<%= nameEsc %>" class="thumb">
+            </a>
+            <h3>
+              <a href="<%= request.getContextPath() %>/item.jsp?id=<%= it.getId() %>"><%= nameEsc %></a>
+            </h3>
+            <p class="price"><%= Math.round(it.getPrice()) %> kr</p>
+            <p class="<%= mutedClass %>"><%= statusText %></p>
+          </article>
+        <%
+          }
+        %>
+      </section>
+  <%
+    }
+  %>
 </main>
 
 </body>
