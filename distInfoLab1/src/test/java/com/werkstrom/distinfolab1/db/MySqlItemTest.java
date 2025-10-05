@@ -1,5 +1,6 @@
 package com.werkstrom.distinfolab1.db;
 
+import com.werkstrom.distinfolab1.bo.ItemCategory;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -31,6 +32,15 @@ class MySqlItemTest {
         MySqlConnectionManager.initializeConnection("root", "MySQLRoot");
         ArrayList<MySqlItem> result = (ArrayList<MySqlItem>) MySqlItem.getItemsByCategory(3, false);
         for (MySqlItem item : result) {
+            System.out.println(item);
+        }
+    }
+
+    @Test
+    void getAllItemCategories() {
+        MySqlConnectionManager.initializeConnection("root", "MySQLRoot");
+        ArrayList<ItemCategory>  result = (ArrayList<ItemCategory>) MySqlItem.getAllItemCategories();
+        for (ItemCategory item : result) {
             System.out.println(item);
         }
     }
