@@ -1,0 +1,223 @@
+package com.werkstrom.distinfolab1.db;
+
+import com.werkstrom.distinfolab1.bo.*;
+import com.werkstrom.distinfolab1.bo.enums.OrderStatus;
+import com.werkstrom.distinfolab1.bo.enums.UserRole;
+import com.werkstrom.distinfolab1.db.exceptions.ConnectionException;
+import com.werkstrom.distinfolab1.db.exceptions.NoResultException;
+import com.werkstrom.distinfolab1.db.exceptions.QueryException;
+import com.werkstrom.distinfolab1.db.exceptions.TransactionException;
+
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.sql.*;
+import java.util.*;
+import java.util.Date;
+
+public class MySqlUser extends User {
+
+    private MySqlUser(int id, UserRole role, String name, String email, ShoppingCart cart, List<Order> orders) {
+        super(id, role, name, email, cart, orders);
+    }
+
+    public static MySqlUser getUser(String email, String password) throws QueryException, ConnectionException, TransactionException {
+        email = email.trim().toLowerCase();
+        password = password.trim();
+        MySqlUser mySqlUser = null;
+
+        String query =
+                        "SELECT " +
+                        "    u.user_id, " +
+                        "    u.name, " +
+                        "    u.user_role " +
+                        "FROM " +
+                        "    User u " +
+                        "WHERE " +
+                        "    u.email = ? " +
+                        "    AND u.password_hash = ?; " +
+                        " " +
+                        "SELECT " +
+                        "    co.order_id, " +
+                        "    co.status, " +
+                        "    co.order_date, " +
+                        "    oim.item_id, " +
+                        "    i.name AS item_name, " +
+                        "    i.description, " +
+                        "    i.price, " +
+                        "    icm.item_category_id, " +
+                        "    ic.name AS item_category_name " +
+                        "FROM " +
+                        "    User u " +
+                        "        LEFT JOIN Customer_order co ON u.user_id = co.user_id " +
+                        "        LEFT JOIN Order_item_mapping oim ON co.order_id = oim.order_id " +
+                        "        LEFT JOIN Item i ON oim.item_id = i.item_id " +
+                        "        LEFT JOIN Item_category_mapping icm ON i.item_id = icm.item_id " +
+                        "        LEFT JOIN Item_category ic ON icm.item_category_id = ic.item_category_id " +
+                        "WHERE " +
+                        "    u.email = ? " +
+                        "    AND u.password_hash = ? " +
+                        "ORDER BY " +
+                        "    co.order_id, " +
+                        "    oim.item_id, " +
+                        "    icm.item_category_id; " +
+                        " " +
+                        "SELECT " +
+                        "    sc.item_id, " +
+                        "    sc.quantity, " +
+                        "    i.name AS item_name, " +
+                        "    i.description, " +
+                        "    i.price, " +
+                        "    i.stock, " +
+                        "    icm.item_category_id, " +
+                        "    ic.name AS item_category_name " +
+                        "FROM " +
+                        "    User u " +
+                        "        LEFT JOIN Shopping_cart sc ON u.user_id = sc.user_id " +
+                        "        LEFT JOIN Item i ON sc.item_id = i.item_id " +
+                        "        LEFT JOIN Item_category_mapping icm ON i.item_id = icm.item_id " +
+                        "        LEFT JOIN Item_category ic ON icm.item_category_id = ic.item_category_id " +
+                        "WHERE " +
+                        "    u.email = ? " +
+                        "    AND u.password_hash = ? " +
+                        "ORDER BY " +
+                        "    sc.user_id, " +
+                        "    i.item_id, " +
+                        "    icm.item_category_id; ";
+
+        try (PreparedStatement statement = MySqlConnectionManager.createPreparedStatement(query)) {
+            MySqlConnectionManager.startTransaction();
+            statement.setString(1, email);
+            statement.setString(2, hashPassword(password));
+            statement.setString(3, email);
+            statement.setString(4, hashPassword(password));
+            statement.setString(5, email);
+            statement.setString(6, hashPassword(password));
+            boolean hasResults = statement.execute();
+            if (!hasResults)
+                throw new NoResultException("No user found with email: " + email + " and password: " + password);
+
+            int rsCount = 0;
+
+            ResultSet resultSet = statement.getResultSet();
+            resultSet.next();
+            int userId = resultSet.getInt("user_id");
+            String userName = resultSet.getString("name");
+            UserRole role = UserRole.valueOf(resultSet.getString("user_role").toUpperCase());
+
+            statement.getMoreResults();
+            resultSet = statement.getResultSet();
+            ArrayList<Order> orders = new ArrayList<>();
+            int lastOrderId = 0;
+            int lastItemId = 0;
+            int lastCategoryId = 0;
+            while (resultSet.next()) {
+                int orderId = resultSet.getInt("order_id");
+                if (orderId != lastOrderId) {
+                    OrderStatus orderStatus = OrderStatus.valueOf(resultSet.getString("status").toUpperCase());
+                    Date orderDate = resultSet.getDate("order_date");
+                    orders.add(new Order(orderId, userId, null, orderStatus));
+                    lastOrderId = orderId;
+                    lastItemId = 0;
+                }
+
+                int itemId = resultSet.getInt("item_id");
+                Order currentOrder = orders.get(orders.size() - 1);
+                if (itemId != lastItemId) {
+                    String itemName = resultSet.getString("item_name");
+                    String description = resultSet.getString("description");
+                    float price = resultSet.getFloat("price");
+                    currentOrder.addItem(new Item(itemId, itemName, description, price, 0, null));
+                    lastItemId = itemId;
+                    lastCategoryId = 0;
+                }
+
+                int categoryId = resultSet.getInt("item_category_id");
+                if (categoryId != lastCategoryId) {
+                    Item currentItem = currentOrder.getCartItems().get(currentOrder.getNrOfItems() - 1);
+                    String categoryName = resultSet.getString("item_category_name");
+                    currentItem.addCategory(new ItemCategory(categoryId, categoryName));
+                    lastCategoryId = categoryId;
+                }
+            }
+
+            statement.getMoreResults();
+            resultSet = statement.getResultSet();
+            lastItemId = 0;
+            lastCategoryId = 0;
+            ArrayList<CartItem> cartItems = new ArrayList<>();
+            while (resultSet.next()) {
+                int itemId = resultSet.getInt("item_id");
+                if (itemId != lastItemId) {
+                    String itemName = resultSet.getString("item_name");
+                    String description = resultSet.getString("description");
+                    float price = resultSet.getFloat("price");
+                    int stock = resultSet.getInt("stock");
+                    int quantity = resultSet.getInt("quantity");
+                    Item newItem = new Item(itemId, itemName, description, price, stock, null);
+                    cartItems.add(new CartItem(quantity, newItem));
+                    lastItemId = itemId;
+                    lastCategoryId = 0;
+                }
+
+                int categoryId = resultSet.getInt("item_category_id");
+                if (categoryId != lastCategoryId) {
+                    Item currentItem = cartItems.get(cartItems.size() - 1).getItem();
+                    String categoryName = resultSet.getString("item_category_name");
+                    currentItem.addCategory(new ItemCategory(categoryId, categoryName));
+                    lastCategoryId = categoryId;
+                }
+            }
+
+            return new MySqlUser(
+                    userId,
+                    role,
+                    userName,
+                    email,
+                    new ShoppingCart(userId, cartItems),
+                    orders
+            );
+        }
+        catch (ConnectionException e) {
+            throw new ConnectionException("A connection needs to be established before user information can be queried: " + e.getMessage());
+        }
+        catch (QueryException e) {
+            throw new QueryException("Could not retrieve user information: " + e.getMessage());
+        }
+        catch (SQLException e) {
+            throw new QueryException("Failure while trying to prepare statement: " + e.getMessage());
+        }
+        catch (IllegalArgumentException e) {
+            throw new QueryException("Illegal user role found in database: " + e.getMessage());
+        }
+    }
+
+    private static String hashPassword(String password) {
+        try {
+            MessageDigest md = MessageDigest.getInstance("SHA-256");
+            byte[] hashBytes = md.digest(password.getBytes());
+            StringBuilder hexString = new StringBuilder();
+            for (byte b : hashBytes) {
+                String hex = Integer.toHexString(0xff & b);
+                if (hex.length() == 1) hexString.append('0');
+                hexString.append(hex);
+            }
+            return hexString.toString().toUpperCase();
+        }
+        catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+    @Override
+    public String toString() {
+        return "MySqlUser{" +
+                "id=" + getId() +
+                ", role=" + getRole() +
+                ", name='" + getName() + '\'' +
+                ", email='" + getEmail() + '\'' +
+                ", cart=" + getCart() +
+                ", orders=" + getOrders() +
+                '}';
+    }
+}

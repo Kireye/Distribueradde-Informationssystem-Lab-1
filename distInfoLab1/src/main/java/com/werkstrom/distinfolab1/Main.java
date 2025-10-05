@@ -9,7 +9,6 @@ import java.util.List;
 
 public class Main {
     public static void main(String[] args) {
-
         // 1) Skapa kategorier
         ItemCategory games = new ItemCategory(1, "Games");
         ItemCategory consoles = new ItemCategory(2, "Consoles");
@@ -61,11 +60,14 @@ public class Main {
         user.getCart().addItem(gow); // samma spel två gånger (ingen kvantitet, bara 2 rader)
 
         System.out.println("\n== After adding items to cart ==");
-        System.out.println("Cart items: " + user.getCart().getItems());
+        System.out.println("Cart items: " + user.getCart().getCartItems());
         System.out.println("Cart total: " + user.getCart().getTotalPrice() + " kr");
 
         // 5) Skapa en order från kundvagnen (frys nuvarande innehåll)
-        List<Item> itemsForOrder = user.getCart().getItems(); // defensiv kopia tillbaka
+        List<CartItem> tmp = user.getCart().getCartItems(); // defensiv kopia tillbaka
+        List<Item> itemsForOrder = new ArrayList<>();
+        for (CartItem item : tmp)
+            itemsForOrder.add(item.getItem());
         Order order = new Order(
                 5001,
                 user.getId(),
@@ -106,11 +108,12 @@ public class Main {
         }
 
         try {
-            user.getCart().addItem(null);
+            user.getCart().addItem(null, 1);
         } catch (IllegalArgumentException e) {
             System.out.println("Expected cart error: " + e.getMessage());
         }
 
         System.out.println("\n== Done ==");
     }
+
 }
