@@ -2,6 +2,7 @@ package com.werkstrom.distinfolab1.db;
 
 import com.werkstrom.distinfolab1.db.exceptions.ConnectionException;
 import com.werkstrom.distinfolab1.db.exceptions.QueryException;
+import com.werkstrom.distinfolab1.db.exceptions.TransactionException;
 
 import java.sql.*;
 
@@ -12,7 +13,7 @@ public class MySqlConnectionManager {
     private MySqlConnectionManager(String username, String password) throws ConnectionException {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
-            connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/online_store", username, password);
+            connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/online_store?allowMultiQueries=true", username, password);
         }
         catch (Exception e) {
             throw new ConnectionException(e.getMessage());
@@ -48,12 +49,51 @@ public class MySqlConnectionManager {
         }
     }
 
-    public static PreparedStatement createPreparedStatement(String query) throws QueryException {
+    public static PreparedStatement createPreparedStatement(String query) throws ConnectionException, QueryException {
         try {
+            if (!isConnected())
+                throw new ConnectionException("Cannot create prepared statement because the connection is closed.");
             return instance.connection.prepareStatement(query);
         }
         catch (SQLException e) {
             throw new QueryException("Failure while trying to prepare statement: " + e.getMessage());
+        }
+    }
+
+    public static void startTransaction() throws ConnectionException {
+        if (!isConnected())
+            throw new ConnectionException("Cannot start transaction because the connection is closed.");
+        try {
+            instance.connection.setAutoCommit(false);
+        }
+        catch (SQLException e) {
+            throw new ConnectionException("Failure while trying to start transaction: " + e.getMessage());
+        }
+    }
+
+    public static void commitTransaction() throws TransactionException {
+        if (!isConnected())
+            throw new ConnectionException("Cannot commit transaction because the connection is closed.");
+        try {
+            if (instance.connection.getAutoCommit())
+                throw new TransactionException("Cannot commit transaction because no transaction has been started.");
+            instance.connection.commit();
+            instance.connection.setAutoCommit(true);
+        } catch (SQLException e) {
+            throw new TransactionException("Failure while trying to commit transaction: " + e.getMessage());
+        }
+    }
+
+    public static void rollbackTransaction() throws ConnectionException {
+        if (!isConnected())
+            throw new ConnectionException("Cannot rollback transaction because the connection is closed.");
+        try {
+            if (instance.connection.getAutoCommit())
+                throw new TransactionException("Cannot rollback transaction because no transaction has been started.");
+            instance.connection.rollback();
+            instance.connection.setAutoCommit(true);
+        } catch (SQLException e) {
+            throw new TransactionException("Failure while trying to rollback transaction: " + e.getMessage());
         }
     }
 

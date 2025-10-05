@@ -9,7 +9,7 @@ public class Order {
 
     private final int orderId;
     private final int ownerId;
-    private final List<Item> items;
+    private final List<Item> cartItems;
     private OrderStatus status;
 
     public Order(int orderId, int ownerId, List<Item> items, OrderStatus status) {
@@ -32,7 +32,7 @@ public class Order {
         }
         this.orderId = orderId;
         this.ownerId = ownerId;
-        this.items = new ArrayList<>(items);
+        this.cartItems = new ArrayList<>(items);
         this.status = status;
     }
 
@@ -44,12 +44,16 @@ public class Order {
         return ownerId;
     }
 
-    public List<Item> getItems() {
-        return new ArrayList<>(items);
+    public List<Item> getCartItems() {
+        return new ArrayList<>(cartItems);
+    }
+
+    public void addItem(Item item) {
+        cartItems.add(item);
     }
 
     public int getNrOfItems() {
-        return items.size();
+        return cartItems.size();
     }
 
     public OrderStatus getStatus() {
@@ -68,7 +72,7 @@ public class Order {
         return "Order{" +
                 "orderId=" + orderId +
                 ", ownerId=" + ownerId +
-                ", nrOfItems=" + items.size() +
+                ", nrOfItems=" + cartItems.size() +
                 ", status=" + status +
                 '}';
     }

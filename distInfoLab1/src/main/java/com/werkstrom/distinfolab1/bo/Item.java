@@ -114,4 +114,11 @@ public class Item {
                 ", categories=" + categories +
                 '}';
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof Item)) return false;
+        if (this == o) return true;
+        return id == ((Item) o).id;
+    }
 }

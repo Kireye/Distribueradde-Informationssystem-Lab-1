@@ -29,6 +29,7 @@ VALUES
     (1, 1), -- 5090         ->  Electronics
     (2, 1), -- 9800X3D      ->  Electronics
     (3, 2), -- Frying pan   ->  Food
+    (3, 3), -- Frying pan   ->  Outdoors
     (4, 2), -- Cucumber     ->  Food
     (5, 3), -- Tent         ->  Outdoors
     (6, 3); -- Sleeping bag ->  Outdoors
