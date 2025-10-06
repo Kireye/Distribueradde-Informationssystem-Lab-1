@@ -211,7 +211,7 @@ public class MySqlUser extends User {
 
         String query =
                 "INSERT INTO User (user_role, name, email, password_hash) " +
-                        "VALUES (?, ?, ?, ?);";
+                "VALUES (?, ?, ?, ?);";
 
         try (PreparedStatement statement = MySqlConnectionManager.createPreparedStatement(query)) {
             statement.setString(1, role.getRoleName());

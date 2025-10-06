@@ -7,7 +7,6 @@ import com.werkstrom.distinfolab1.db.exceptions.QueryException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -30,6 +29,13 @@ public class MySqlOrder extends Order {
                 "INSERT INTO Order_item_mapping (order_id, item_id, quantity) " +
                 "SELECT @order_id, sc.item_id, sc.quantity " +
                 "FROM Shopping_cart sc " +
+                "WHERE sc.user_id = @uid; " +
+                " " +
+                "UPDATE Item i " +
+                "LEFT JOIN " +
+                "       Shopping_cart sc ON " +
+                "           i.item_id = sc.item_id " +
+                "SET i.stock = i.stock - sc.quantity " +
                 "WHERE sc.user_id = @uid; " +
                 " " +
                 "DELETE FROM Shopping_cart " +
@@ -71,14 +77,14 @@ public class MySqlOrder extends Order {
             MySqlConnectionManager.startTransaction();
             boolean hasResults = statement.execute();
             ResultSet resultSet = statement.getResultSet();
-            int maxExpectedResultLoops = 5;
+            int expectedResultLoops = 6;
             int i = 0;
-            while (!hasResults && i < maxExpectedResultLoops) {
+            while (!hasResults && i < expectedResultLoops) {
                 hasResults = statement.getMoreResults();
                 resultSet =  statement.getResultSet();
                 i++;
             }
-            if (!hasResults && i == maxExpectedResultLoops) {
+            if (!hasResults && i == expectedResultLoops) {
                 MySqlConnectionManager.rollbackTransaction();
                 throw new QueryException("Could not create order:  " + userId);
             }
@@ -121,11 +127,27 @@ public class MySqlOrder extends Order {
             );
         }
         catch (QueryException e) {
+            e.printStackTrace();
             throw new QueryException(e.getMessage());
         }
         catch (Exception e) {
             MySqlConnectionManager.rollbackTransaction();
             throw new QueryException("Failed to place order: " + e.getMessage());
+        }
+    }
+
+    public static void updateOrderStatus(int orderId, OrderStatus orderStatus) {
+        if (orderStatus == null) throw new IllegalArgumentException("OrderStatus cannot be null");
+        if (orderId <= 0) throw new IllegalArgumentException("OrderId cannot be negative or zero");
+
+        String query = "UPDATE Customer_order co SET co.status = ? WHERE co.order_id = ?;";
+        try (PreparedStatement statement = MySqlConnectionManager.createPreparedStatement(query)) {
+            statement.setString(1, orderStatus.getStatusName());
+            statement.setInt(2, orderId);
+            statement.executeUpdate();
+        }
+        catch (SQLException e) {
+            throw new QueryException("Could not update order status: " + e.getMessage());
         }
     }
 
