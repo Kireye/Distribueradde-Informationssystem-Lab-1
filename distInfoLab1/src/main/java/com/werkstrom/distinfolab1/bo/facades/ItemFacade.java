@@ -1,116 +1,76 @@
 package com.werkstrom.distinfolab1.bo.facades;
 
+import com.werkstrom.distinfolab1.db.MySqlConnectionManager;
+import com.werkstrom.distinfolab1.db.MySqlItem;
+import com.werkstrom.distinfolab1.db.exceptions.ConnectionException;
+import com.werkstrom.distinfolab1.db.exceptions.NoResultException;
+import com.werkstrom.distinfolab1.db.exceptions.QueryException;
+import com.werkstrom.distinfolab1.ui.ItemInfo;
 import com.werkstrom.distinfolab1.bo.Item;
 import com.werkstrom.distinfolab1.bo.ItemCategory;
-import com.werkstrom.distinfolab1.bo.enums.UserRole;
-import com.werkstrom.distinfolab1.ui.ItemInfo;
 
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 
+public final class ItemFacade {
 
-public class ItemFacade {
+    private ItemFacade() {}
 
-    private static final List<Item> items = new ArrayList<>();
-
-    public static List<ItemInfo> getAllItems() {
-        List<ItemInfo> result = new ArrayList<>();
-        for (int i = 0; i < items.size(); i++) {
-            Item current = items.get(i);
-            ItemInfo info = toInfo(current);
-            result.add(info);
-        }
-        return result;
+    public static List<ItemInfo> listAll(boolean inStockOnly) throws ConnectionException, QueryException, NoResultException {
+        ensureConnected();
+        List<MySqlItem> dbItems = MySqlItem.getAllItems(inStockOnly);
+        return toInfo(dbItems);
     }
 
-    public static List<ItemInfo> getItemsByName(String name, int minPrice, int maxPrice, boolean onlyInStock) {
-        if (name == null || name.isEmpty()) {
-            throw new IllegalArgumentException("name cannot be null or empty");
+    public static List<ItemInfo> listByCategory(int categoryId, boolean inStockOnly) throws ConnectionException, QueryException, NoResultException {
+        if (categoryId <= 0) {
+            throw new IllegalArgumentException("categoryId must be > 0");
         }
-        if (minPrice < 0) {
-            minPrice = 0;
+        ensureConnected();
+        List<MySqlItem> dbItems = MySqlItem.getItemsByCategory(categoryId, inStockOnly);
+        return toInfo(dbItems);
+    }
+
+    public static List<ItemInfo> searchByName(String searchTerm, boolean inStockOnly) throws ConnectionException, QueryException, NoResultException {
+        if (searchTerm == null || searchTerm.trim().isEmpty()) {
+            throw new IllegalArgumentException("searchTerm cannot be empty");
         }
-        if (maxPrice < minPrice) {
-            maxPrice = minPrice;
-        }
+        ensureConnected();
 
-        String needle = name.toLowerCase();
-        List<ItemInfo> result = new ArrayList<>();
-
-        for (int i = 0; i < items.size(); i++) {
-            Item it = items.get(i);
-
-            String itemName = it.getName();
-            boolean nameMatches = false;
-            if (itemName != null) {
-                String lower = itemName.toLowerCase();
-                if (lower.contains(needle)) {
-                    nameMatches = true;
-                }
-            }
-
-            float price = it.getPrice();
-            boolean priceMatches = false;
-            if (price >= minPrice && price <= maxPrice) {
-                priceMatches = true;
-            }
-
-            boolean stockMatches = true;
-            if (onlyInStock) {
-                if (it.getStock() <= 0) {
-                    stockMatches = false;
-                }
-            }
-
-            if (nameMatches && priceMatches && stockMatches) {
-                result.add(toInfo(it));
+        // NOTE: tills MySqlItem.getItemsByName() är fixad i DB-lagret filtrerar vi i minnet:
+        List<MySqlItem> all = MySqlItem.getAllItems(inStockOnly);
+        String q = searchTerm.trim().toLowerCase();
+        List<MySqlItem> filtered = new ArrayList<>();
+        for (MySqlItem it : all) {
+            if (it.getName().toLowerCase().contains(q) ||
+                    it.getDescription().toLowerCase().contains(q)) {
+                filtered.add(it);
             }
         }
-
-        return result;
-    }
-
-    public static List<ItemInfo> getItemsByCategory(ItemCategory category, int minPrice, int maxPrice, boolean onlyInStock) {
-        if (category == null) {
-            throw new IllegalArgumentException("category cannot be null");
+        if (filtered.isEmpty()) {
+            throw new NoResultException("No items found");
         }
-        if (minPrice < 0) {
-            minPrice = 0;
+        return toInfo(filtered);
+    }
+
+    private static void ensureConnected() throws ConnectionException {
+        if (!MySqlConnectionManager.isConnected()) {
+            throw new ConnectionException("No database connection.");
         }
-        if (maxPrice < minPrice) {
-            maxPrice = minPrice;
+    }
+
+    private static List<ItemInfo> toInfo(List<MySqlItem> items) {
+        List<ItemInfo> out = new ArrayList<>();
+        for (Item it : items) {
+            out.add(new ItemInfo(
+                    it.getId(),
+                    it.getName(),
+                    it.getDescription(),
+                    it.getPrice(),
+                    it.getStock(),
+                    it.getCategories() == null ? new ArrayList<ItemCategory>() : it.getCategories()
+            ));
         }
-
-        int wantedCategoryId = category.getId();
-        List<ItemInfo> result = new ArrayList<>();
-
-        for (int i = 0; i < items.size(); i++) {
-            Item it = items.get(i);
-        }
-
-        return result;
-    }
-
-    public static void addItem(Item item, UserRole role) {
-
-    }
-
-    public static void deleteItem(int id, UserRole role) {
-
-    }
-
-    public static void updateItem(Item item, UserRole role) {
-
-    }
-
-    private static ItemInfo toInfo(Item it) {
-        return new ItemInfo(
-                it.getId(),
-                it.getName(),
-                it.getDescription(),
-                it.getPrice(),
-                it.getStock(),
-                it.getCategories()
-        );
+        return out;
     }
 }

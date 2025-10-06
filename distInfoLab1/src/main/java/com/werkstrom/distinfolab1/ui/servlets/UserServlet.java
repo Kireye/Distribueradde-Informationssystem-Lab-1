@@ -32,6 +32,11 @@ public class UserServlet extends HttpServlet {
             return;
         }
 
+        if ("/register".equals(path)) {
+            req.getRequestDispatcher("/register.jsp").forward(req, resp);
+            return;
+        }
+
         if ("/logout".equals(path)) {
             // Visa en enkel bekräftelse- eller redirect direkt
             resp.sendRedirect(req.getContextPath() + "/index.jsp");
@@ -53,6 +58,11 @@ public class UserServlet extends HttpServlet {
 
         if ("/login".equals(path)) {
             handleLogin(req, resp);
+            return;
+        }
+
+        if ("/register".equals(path)) {
+            handleRegister(req, resp);
             return;
         }
 
@@ -98,6 +108,43 @@ public class UserServlet extends HttpServlet {
         catch (ConnectionException | QueryException | TransactionException e) {
             req.setAttribute("error", "Inloggning misslyckades: " + e.getMessage());
             req.getRequestDispatcher("/login.jsp").forward(req, resp);
+        }
+    }
+
+    private void handleRegister(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+
+        String name = req.getParameter("name");
+        String email = req.getParameter("email");
+        String password = req.getParameter("password");
+
+        if (name == null) name = "";
+        if (email == null) email = "";
+        if (password == null) password = "";
+
+        if (name.trim().isEmpty() || email.trim().isEmpty() || password.trim().isEmpty()) {
+            req.setAttribute("error", "Fyll i namn, e-post och lösenord.");
+            req.getRequestDispatcher("/register.jsp").forward(req, resp);
+            return;
+        }
+
+        try {
+            UserInfo userInfo = UserFacade.register(name, email, password);
+            HttpSession session = req.getSession(true);
+            session.setAttribute("user", userInfo);
+            resp.sendRedirect(req.getContextPath() + "/index.jsp");
+        }
+        catch (IllegalArgumentException e) {
+            req.setAttribute("error", e.getMessage());
+            req.getRequestDispatcher("/register.jsp").forward(req, resp);
+        }
+        catch (ConnectionException | TransactionException e) {
+            req.setAttribute("error", "Registrering misslyckades: " + e.getMessage());
+            req.getRequestDispatcher("/register.jsp").forward(req, resp);
+        }
+        catch (QueryException e) {
+            // T.ex. unik e-post (duplicate key) eller annan SQL-validering
+            req.setAttribute("error", "Registrering misslyckades: " + e.getMessage());
+            req.getRequestDispatcher("/register.jsp").forward(req, resp);
         }
     }
 

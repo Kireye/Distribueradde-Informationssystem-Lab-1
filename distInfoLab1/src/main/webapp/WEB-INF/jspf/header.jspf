@@ -1,31 +1,23 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=6">
 
-<!-- NOTE: Ingen DB-init här. AppInitListener hanterar gäst-anslutningen vid start. -->
-
 <header class="site-header">
   <div class="container topbar">
 
-    <!-- Brand -> Home -->
-    <a class="brand" href="${pageContext.request.contextPath}/index.jsp">MiniShop</a>
+    <a class="brand" href="${pageContext.request.contextPath}/items">MiniShop</a>
 
-    <!-- Search (GET). TODO: När ItemServlet finns, byt action till /items/search -->
-    <form class="search" action="${pageContext.request.contextPath}/index.jsp" method="get">
+    <!-- Sök: går nu mot /items (ItemServlet) -->
+    <form class="search" action="${pageContext.request.contextPath}/items" method="get">
       <input type="text" name="q" placeholder="Search products…" value="${param.q}">
       <button type="submit" aria-label="Search">🔍</button>
     </form>
 
-    <!-- Actions (account + cart) -->
     <div class="actions">
-
-      <!-- Konto: visa login/register om ingen user i session -->
       <div class="action">
         <div class="links" style="${empty sessionScope.user ? '' : 'display:none'}">
           <a href="${pageContext.request.contextPath}/login.jsp">Login</a>
           <a class="sub" href="${pageContext.request.contextPath}/register.jsp">Create account</a>
         </div>
-
-        <!-- Konto: visa namn/roll + logout om user finns -->
         <div class="links" style="${empty sessionScope.user ? 'display:none' : ''}">
           <span class="user-pill">
             <span class="user-name">${sessionScope.user.name}</span>
@@ -37,7 +29,6 @@
         </div>
       </div>
 
-      <!-- Cart + Orders: endast när user finns -->
       <div class="action" style="${empty sessionScope.user ? 'display:none' : ''}">
         <a class="icon" href="${pageContext.request.contextPath}/cart.jsp" aria-label="Cart">
           <svg viewBox="0 0 24 24" aria-hidden="true" class="cart-svg">
@@ -50,7 +41,6 @@
         <a class="link" href="${pageContext.request.contextPath}/order.jsp">Orders</a>
       </div>
 
-      <!-- Hint: när ingen user finns -->
       <div class="action" style="${empty sessionScope.user ? '' : 'display:none'}">
         <a class="muted" href="${pageContext.request.contextPath}/login.jsp">
           Log in to see cart and orders
@@ -59,17 +49,16 @@
     </div>
   </div>
 
-  <!-- Category bar -->
   <nav class="catbar">
     <div class="container catbar-inner">
-      <!-- TODO: När ItemServlet finns: peka mot /items?catId=... -->
-      <a href="${pageContext.request.contextPath}/index.jsp?catId=1">Electronics</a>
-      <a href="${pageContext.request.contextPath}/index.jsp?catId=2">Home &amp; Kitchen</a>
-      <a href="${pageContext.request.contextPath}/index.jsp?catId=3">Video Games &amp; Consoles</a>
-      <a href="${pageContext.request.contextPath}/index.jsp?catId=4">Books</a>
-      <a href="${pageContext.request.contextPath}/index.jsp?catId=5">Toys &amp; Games</a>
-      <a href="${pageContext.request.contextPath}/index.jsp?catId=6">Sport &amp; Outdoor</a>
-      <a href="${pageContext.request.contextPath}/index.jsp?catId=7">Tools</a>
+      <!-- Kategorier: går nu mot /items?catId=... -->
+      <a href="${pageContext.request.contextPath}/items?catId=1">Electronics</a>
+      <a href="${pageContext.request.contextPath}/items?catId=2">Home &amp; Kitchen</a>
+      <a href="${pageContext.request.contextPath}/items?catId=3">Video Games &amp; Consoles</a>
+      <a href="${pageContext.request.contextPath}/items?catId=4">Books</a>
+      <a href="${pageContext.request.contextPath}/items?catId=5">Toys &amp; Games</a>
+      <a href="${pageContext.request.contextPath}/items?catId=6">Sport &amp; Outdoor</a>
+      <a href="${pageContext.request.contextPath}/items?catId=7">Tools</a>
     </div>
   </nav>
 </header>
