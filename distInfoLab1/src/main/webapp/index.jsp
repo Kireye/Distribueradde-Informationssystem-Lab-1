@@ -14,13 +14,9 @@
   <h1>Produkter</h1>
   <p class="muted">Klicka på en produkt för att se mer information och lägga till i kundvagnen.</p>
 
-  <!--
-    Denna sida är VY endast.
-    ItemServlet lägger färdigrenderade kort i requestScope.itemsHtml.
-    Vid fel läggs ett kort med feltext.
-    TODO: När vi bygger item-detaljsida, länkarna i ItemServlets HTML byts till /items/detail?id=...
+  <!-- Denna sida är VY endast.
+       ItemServlet fyller requestScope.itemsHtml (alla produkter om ingen kategori/sök).
   -->
-
   <section class="grid">
     ${requestScope.itemsHtml}
   </section>

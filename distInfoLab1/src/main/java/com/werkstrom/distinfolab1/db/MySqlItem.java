@@ -74,7 +74,7 @@ public class MySqlItem extends Item {
                         "FROM Item i " +
                         "LEFT JOIN Item_category_mapping icm ON i.item_id = icm.item_id " +
                         "LEFT JOIN Item_category ic ON icm.item_category_id = ic.item_category_id " +
-                        "WHERE (LOWER(i.name) LIKE ? OR LOWER(i.description) LIKE ?) " +
+                        "WHERE LOWER(i.name) LIKE ? " +          // ← enbart namn
                         "  AND i.stock >= ? " +
                         "ORDER BY i.item_id, icm.item_category_id;";
 
@@ -83,8 +83,7 @@ public class MySqlItem extends Item {
             int stockCriteria = inStockOnly ? 1 : 0;
 
             statement.setString(1, pattern);
-            statement.setString(2, pattern);
-            statement.setInt(3, stockCriteria);
+            statement.setInt(2, stockCriteria);
 
             boolean hasResult = statement.execute();
             if (!hasResult) throw new NoResultException("No items found");

@@ -23,7 +23,7 @@ public class UserServlet extends HttpServlet {
             throws ServletException, IOException {
         String path = req.getPathInfo();
         if (path == null) {
-            resp.sendRedirect(req.getContextPath() + "/login.jsp");
+            resp.sendRedirect(req.getContextPath() + "/items");
             return;
         }
 
@@ -32,14 +32,9 @@ public class UserServlet extends HttpServlet {
             return;
         }
 
-        if ("/register".equals(path)) {
-            req.getRequestDispatcher("/register.jsp").forward(req, resp);
-            return;
-        }
-
         if ("/logout".equals(path)) {
-            // Visa en enkel bekräftelse- eller redirect direkt
-            resp.sendRedirect(req.getContextPath() + "/index.jsp");
+            // GET /user/logout -> tillbaka till produktlistan
+            resp.sendRedirect(req.getContextPath() + "/items");
             return;
         }
 
@@ -61,11 +56,6 @@ public class UserServlet extends HttpServlet {
             return;
         }
 
-        if ("/register".equals(path)) {
-            handleRegister(req, resp);
-            return;
-        }
-
         if ("/logout".equals(path)) {
             handleLogout(req, resp);
             return;
@@ -80,12 +70,8 @@ public class UserServlet extends HttpServlet {
         String email = req.getParameter("email");
         String password = req.getParameter("password");
 
-        if (email == null) {
-            email = "";
-        }
-        if (password == null) {
-            password = "";
-        }
+        if (email == null) email = "";
+        if (password == null) password = "";
 
         if (email.trim().isEmpty() || password.trim().isEmpty()) {
             req.setAttribute("error", "Fyll i både e-post och lösenord.");
@@ -99,7 +85,8 @@ public class UserServlet extends HttpServlet {
             HttpSession session = req.getSession(true);
             session.setAttribute("user", userInfo);
 
-            resp.sendRedirect(req.getContextPath() + "/index.jsp");
+            // Efter lyckad login: gå till ItemServlet
+            resp.sendRedirect(req.getContextPath() + "/items");
         }
         catch (IllegalArgumentException e) {
             req.setAttribute("error", e.getMessage());
@@ -108,43 +95,6 @@ public class UserServlet extends HttpServlet {
         catch (ConnectionException | QueryException | TransactionException e) {
             req.setAttribute("error", "Inloggning misslyckades: " + e.getMessage());
             req.getRequestDispatcher("/login.jsp").forward(req, resp);
-        }
-    }
-
-    private void handleRegister(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-
-        String name = req.getParameter("name");
-        String email = req.getParameter("email");
-        String password = req.getParameter("password");
-
-        if (name == null) name = "";
-        if (email == null) email = "";
-        if (password == null) password = "";
-
-        if (name.trim().isEmpty() || email.trim().isEmpty() || password.trim().isEmpty()) {
-            req.setAttribute("error", "Fyll i namn, e-post och lösenord.");
-            req.getRequestDispatcher("/register.jsp").forward(req, resp);
-            return;
-        }
-
-        try {
-            UserInfo userInfo = UserFacade.register(name, email, password);
-            HttpSession session = req.getSession(true);
-            session.setAttribute("user", userInfo);
-            resp.sendRedirect(req.getContextPath() + "/index.jsp");
-        }
-        catch (IllegalArgumentException e) {
-            req.setAttribute("error", e.getMessage());
-            req.getRequestDispatcher("/register.jsp").forward(req, resp);
-        }
-        catch (ConnectionException | TransactionException e) {
-            req.setAttribute("error", "Registrering misslyckades: " + e.getMessage());
-            req.getRequestDispatcher("/register.jsp").forward(req, resp);
-        }
-        catch (QueryException e) {
-            // T.ex. unik e-post (duplicate key) eller annan SQL-validering
-            req.setAttribute("error", "Registrering misslyckades: " + e.getMessage());
-            req.getRequestDispatcher("/register.jsp").forward(req, resp);
         }
     }
 
@@ -162,6 +112,7 @@ public class UserServlet extends HttpServlet {
             session.invalidate();
         }
 
-        resp.sendRedirect(req.getContextPath() + "/index.jsp");
+        // Efter logout: gå till ItemServlet
+        resp.sendRedirect(req.getContextPath() + "/items");
     }
 }

@@ -4,20 +4,23 @@
 <header class="site-header">
   <div class="container topbar">
 
+    <!-- Brand -> Items (ItemServlet) -->
     <a class="brand" href="${pageContext.request.contextPath}/items">MiniShop</a>
 
-    <!-- Sök: går nu mot /items (ItemServlet) -->
+    <!-- Sök går mot /items -->
     <form class="search" action="${pageContext.request.contextPath}/items" method="get">
       <input type="text" name="q" placeholder="Search products…" value="${param.q}">
       <button type="submit" aria-label="Search">🔍</button>
     </form>
 
+    <!-- Actions -->
     <div class="actions">
       <div class="action">
         <div class="links" style="${empty sessionScope.user ? '' : 'display:none'}">
           <a href="${pageContext.request.contextPath}/login.jsp">Login</a>
           <a class="sub" href="${pageContext.request.contextPath}/register.jsp">Create account</a>
         </div>
+
         <div class="links" style="${empty sessionScope.user ? 'display:none' : ''}">
           <span class="user-pill">
             <span class="user-name">${sessionScope.user.name}</span>
@@ -49,16 +52,10 @@
     </div>
   </div>
 
+  <!-- Category bar: vyn visar bara en färdig HTML-snutt som ItemServlet cachar i applicationScope -->
   <nav class="catbar">
     <div class="container catbar-inner">
-      <!-- Kategorier: går nu mot /items?catId=... -->
-      <a href="${pageContext.request.contextPath}/items?catId=1">Electronics</a>
-      <a href="${pageContext.request.contextPath}/items?catId=2">Home &amp; Kitchen</a>
-      <a href="${pageContext.request.contextPath}/items?catId=3">Video Games &amp; Consoles</a>
-      <a href="${pageContext.request.contextPath}/items?catId=4">Books</a>
-      <a href="${pageContext.request.contextPath}/items?catId=5">Toys &amp; Games</a>
-      <a href="${pageContext.request.contextPath}/items?catId=6">Sport &amp; Outdoor</a>
-      <a href="${pageContext.request.contextPath}/items?catId=7">Tools</a>
+      ${applicationScope.categoriesHtml}
     </div>
   </nav>
 </header>
