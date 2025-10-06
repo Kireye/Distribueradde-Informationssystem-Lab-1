@@ -54,4 +54,21 @@ class MySqlUserTest {
             throw new RuntimeException(e);
         }
     }
+
+    @Test
+    void addUser() {
+        MySqlConnectionManager.initializeConnection("root", "MySQLRoot");
+        MySqlUser.addUser(UserRole.CUSTOMER, "test", "test@example.com", "test");
+        String query = "SELECT * FROM User u WHERE u.email = ?;";
+        try (PreparedStatement statement = MySqlConnectionManager.createPreparedStatement(query)) {
+            statement.setString(1, "test@example.com");
+            ResultSet rs = statement.executeQuery();
+            assertTrue(rs.next());
+            assertEquals(UserRole.CUSTOMER.getRoleName(), rs.getString("user_role"));
+            assertEquals("test", rs.getString("name"));
+        }
+        catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }
