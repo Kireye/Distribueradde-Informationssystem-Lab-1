@@ -143,29 +143,6 @@ public class MySqlItem extends Item {
 
     }
 
-    public static List<ItemCategory> getAllItemCategories() throws IllegalArgumentException, ConnectionException, NoResultException {
-        if (!MySqlConnectionManager.isConnected())  throw new ConnectionException("No connection to database");
-
-        String query ="SELECT ic.item_category_id, ic.name FROM Item_category ic;";
-        try (PreparedStatement statement = MySqlConnectionManager.createPreparedStatement(query)) {
-            boolean hasResults = statement.execute();
-            if (!hasResults)  throw new NoResultException("No item categories found");
-
-            ResultSet resultSet = statement.getResultSet();
-            ArrayList<ItemCategory> itemCategories = new ArrayList<>();
-            while(resultSet.next()) {
-                int id = resultSet.getInt("item_category_id");
-                if (id == 0) throw new NoResultException("No item categories found");
-                String name =  resultSet.getString("name");
-                itemCategories.add(new ItemCategory(id, name));
-            }
-            return itemCategories;
-        }
-        catch (SQLException e) {
-            throw new QueryException("Failed to get item categories from database: " + e.getMessage());
-        }
-    }
-
     private static List<MySqlItem> getItemsFromResultSet(ResultSet resultSet) throws SQLException {
         ArrayList<Item> items = new ArrayList<>();
         int lastItemId = 0;
