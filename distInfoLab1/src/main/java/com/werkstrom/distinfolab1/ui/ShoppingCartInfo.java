@@ -5,26 +5,25 @@ import java.util.List;
 
 public class ShoppingCartInfo {
     private final int ownerId;
-    private final List<QuantityItemInfo> items;
+    private final List<CartItemInfo> items;
 
-    public ShoppingCartInfo(int ownerId, List<QuantityItemInfo> items) {
+    public ShoppingCartInfo(int ownerId, List<CartItemInfo> items) {
         this.ownerId = ownerId;
         this.items = items == null ? new ArrayList<>() : new ArrayList<>(items);
     }
 
     public int getOwnerId() { return ownerId; }
-
-    public List<QuantityItemInfo> getItems() { return new ArrayList<>(items); }
+    public List<CartItemInfo> getItems() { return new ArrayList<>(items); }
 
     public float getTotal() {
         float sum = 0f;
-        for (QuantityItemInfo qi : items) sum += qi.getSubtotal();
+        for (CartItemInfo ci : items) sum += ci.getSubtotal();
         return sum;
     }
 
     public int getTotalQuantity() {
         int n = 0;
-        for (QuantityItemInfo qi : items) n += qi.getQuantity();
+        for (CartItemInfo ci : items) n += ci.getQuantity();
         return n;
     }
 

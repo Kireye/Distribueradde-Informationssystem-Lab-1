@@ -1,10 +1,9 @@
 package com.werkstrom.distinfolab1.ui.servlets;
 
-import com.werkstrom.distinfolab1.bo.QuantityItem;
 import com.werkstrom.distinfolab1.bo.facades.ShoppingCartFacade;
 import com.werkstrom.distinfolab1.db.exceptions.ConnectionException;
 import com.werkstrom.distinfolab1.db.exceptions.QueryException;
-import com.werkstrom.distinfolab1.ui.QuantityItemInfo;
+import com.werkstrom.distinfolab1.ui.CartItemInfo;
 import com.werkstrom.distinfolab1.ui.ShoppingCartInfo;
 import com.werkstrom.distinfolab1.ui.UserInfo;
 
@@ -117,7 +116,7 @@ public class ShoppingCartServlet extends HttpServlet {
                 .append("<th>Produkt</th><th class=\"right\">Pris</th><th class=\"right\">Antal</th><th class=\"right\">Delsumma</th><th></th>")
                 .append("</tr></thead><tbody>");
 
-        for (QuantityItem ci : cart.getItems()) {
+        for (CartItemInfo ci : cart.getItems()) {
             sb.append("<tr>")
                     .append("<td>").append(escape(ci.getName())).append("</td>")
                     .append("<td class=\"right\">").append(fmt(ci.getPrice())).append(" kr</td>")
