@@ -31,6 +31,13 @@ public class MySqlOrder extends Order {
                 "FROM Shopping_cart sc " +
                 "WHERE sc.user_id = @uid; " +
                 " " +
+                "UPDATE Item i " +
+                "LEFT JOIN " +
+                "       Shopping_cart sc ON " +
+                "           i.item_id = sc.item_id " +
+                "SET i.stock = i.stock - sc.quantity " +
+                "WHERE sc.user_id = @uid; " +
+                " " +
                 "DELETE FROM Shopping_cart " +
                 "WHERE user_id = @uid; " +
                 " " +
@@ -70,14 +77,14 @@ public class MySqlOrder extends Order {
             MySqlConnectionManager.startTransaction();
             boolean hasResults = statement.execute();
             ResultSet resultSet = statement.getResultSet();
-            int maxExpectedResultLoops = 5;
+            int expectedResultLoops = 6;
             int i = 0;
-            while (!hasResults && i < maxExpectedResultLoops) {
+            while (!hasResults && i < expectedResultLoops) {
                 hasResults = statement.getMoreResults();
                 resultSet =  statement.getResultSet();
                 i++;
             }
-            if (!hasResults && i == maxExpectedResultLoops) {
+            if (!hasResults && i == expectedResultLoops) {
                 MySqlConnectionManager.rollbackTransaction();
                 throw new QueryException("Could not create order:  " + userId);
             }
@@ -120,6 +127,7 @@ public class MySqlOrder extends Order {
             );
         }
         catch (QueryException e) {
+            e.printStackTrace();
             throw new QueryException(e.getMessage());
         }
         catch (Exception e) {
