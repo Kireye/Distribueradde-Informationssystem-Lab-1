@@ -50,9 +50,9 @@ CREATE TABLE Customer_order (
 
 CREATE TABLE Order_item_mapping (
                         order_id INT,
-                        FOREIGN KEY (order_id) REFERENCES Customer_order(order_id),
+                        FOREIGN KEY (order_id) REFERENCES Customer_order(order_id) ON DELETE CASCADE,
                         item_id INT,
-                        FOREIGN KEY (item_id) REFERENCES Item(item_id),
+                        FOREIGN KEY (item_id) REFERENCES Item(item_id) ON DELETE CASCADE,
                         quantity INT NOT NULL CHECK ( quantity > 0 ),
                         PRIMARY KEY (order_id, item_id)
 );

@@ -39,4 +39,19 @@ class MySqlUserTest {
             throw new RuntimeException(e);
         }
     }
+
+    @Test
+    void deleteUser() {
+        MySqlConnectionManager.initializeConnection("root", "MySQLRoot");
+        MySqlUser.deleteUser(3);
+        String query = "SELECT * FROM User u WHERE u.user_id = ?;";
+        try (PreparedStatement statement = MySqlConnectionManager.createPreparedStatement("SELECT * FROM User WHERE user_id = ?")) {
+            statement.setInt(1, 3);
+            ResultSet rs = statement.executeQuery();
+            assertFalse(rs.next());
+        }
+        catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

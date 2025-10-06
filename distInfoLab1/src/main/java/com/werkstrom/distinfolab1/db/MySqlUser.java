@@ -209,6 +209,21 @@ public class MySqlUser extends User {
         }
     }
 
+    public static void deleteUser(int userId) {
+        if (userId <= 0) throw new IllegalArgumentException("UserId cannot be negative or zero");
+        String query = "DELETE FROM User u WHERE u.user_id = ?;";
+        try (PreparedStatement statement = MySqlConnectionManager.createPreparedStatement(query)) {
+            MySqlConnectionManager.startTransaction();
+            statement.setInt(1, userId);
+            statement.executeUpdate();
+            MySqlConnectionManager.commitTransaction();
+        }
+        catch (SQLException e) {
+            MySqlConnectionManager.rollbackTransaction();
+            throw new QueryException("Could not delete user: " + e.getMessage());
+        }
+    }
+
     private static String hashPassword(String password) {
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-256");

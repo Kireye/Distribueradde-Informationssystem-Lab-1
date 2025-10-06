@@ -5,7 +5,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a62d5493-06db-443c-bc69-ed32da598b91" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/../distInfoLab1/src/main/java/com/werkstrom/distinfolab1/db/MySqlUser.java" beforeDir="false" afterPath="$PROJECT_DIR$/../distInfoLab1/src/main/java/com/werkstrom/distinfolab1/db/MySqlUser.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../distInfoLab1/src/test/java/com/werkstrom/distinfolab1/db/MySqlUserTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/../distInfoLab1/src/test/java/com/werkstrom/distinfolab1/db/MySqlUserTest.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/create_tables.sql" beforeDir="false" afterPath="$PROJECT_DIR$/create_tables.sql" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
