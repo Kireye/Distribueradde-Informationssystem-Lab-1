@@ -2,115 +2,88 @@ package com.werkstrom.distinfolab1.bo.facades;
 
 import com.werkstrom.distinfolab1.bo.Item;
 import com.werkstrom.distinfolab1.bo.ItemCategory;
-import com.werkstrom.distinfolab1.bo.enums.UserRole;
+import com.werkstrom.distinfolab1.db.MySqlConnectionManager;
+import com.werkstrom.distinfolab1.db.MySqlItem;
+import com.werkstrom.distinfolab1.db.exceptions.ConnectionException;
+import com.werkstrom.distinfolab1.db.exceptions.QueryException;
 import com.werkstrom.distinfolab1.ui.ItemInfo;
 
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 
+public final class ItemFacade {
 
-public class ItemFacade {
+    private ItemFacade() { }
 
-    private static final List<Item> items = new ArrayList<>();
+    public static List<ItemInfo> getAllItems(boolean onlyInStock) throws ConnectionException, QueryException {
+        ensureConnected();
+        List<MySqlItem> dbItems = MySqlItem.getAllItems(onlyInStock);
+        return toItemInfoList(dbItems);
+    }
 
-    public static List<ItemInfo> getAllItems() {
+    public static List<ItemInfo> search(String q, Integer categoryId, boolean onlyInStock) throws ConnectionException, QueryException {
+        ensureConnected();
+
+        if (q != null && !q.isEmpty()) {
+            return toItemInfoList(MySqlItem.getItemsByName(q, onlyInStock));
+        }
+        if (categoryId != null && categoryId > 0) {
+            return toItemInfoList(MySqlItem.getItemsByCategory(categoryId, onlyInStock));
+        }
+        return toItemInfoList(MySqlItem.getAllItems(onlyInStock));
+    }
+
+    public static ItemInfo getItemById(int itemId) throws ConnectionException, QueryException {
+        if (itemId <= 0) throw new IllegalArgumentException("itemId must be greater than 0");
+        ensureConnected();
+        MySqlItem dbItem = MySqlItem.getItemById(itemId);
+        return toItemInfo(dbItem);
+    }
+
+    public static List<ItemInfo> getItemsByName(String searchTerm, boolean onlyInStock) throws ConnectionException, QueryException {
+        if (searchTerm == null) throw new IllegalArgumentException("searchTerm cannot be null");
+        if (searchTerm.isEmpty()) throw new IllegalArgumentException("searchTerm cannot be empty");
+        ensureConnected();
+        List<MySqlItem> dbItems = MySqlItem.getItemsByName(searchTerm, onlyInStock);
+        return toItemInfoList(dbItems);
+    }
+
+    public static List<ItemInfo> getItemsByCategory(int categoryId, boolean onlyInStock) throws ConnectionException, QueryException {
+        if (categoryId <= 0) throw new IllegalArgumentException("categoryId must be greater than 0");
+        ensureConnected();
+        List<MySqlItem> dbItems = MySqlItem.getItemsByCategory(categoryId, onlyInStock);
+        return toItemInfoList(dbItems);
+    }
+
+    private static void ensureConnected() throws ConnectionException {
+        if (!MySqlConnectionManager.isConnected()) {
+            throw new ConnectionException("No database connection. Initialize connection before calling ItemFacade methods.");
+        }
+    }
+
+    private static List<ItemInfo> toItemInfoList(List<? extends Item> items) {
         List<ItemInfo> result = new ArrayList<>();
-        for (int i = 0; i < items.size(); i++) {
-            Item current = items.get(i);
-            ItemInfo info = toInfo(current);
-            result.add(info);
+        if (items == null) return result;
+        for (Item it : items) {
+            if (it != null) result.add(toItemInfo(it));
         }
         return result;
     }
 
-    public static List<ItemInfo> getItemsByName(String name, int minPrice, int maxPrice, boolean onlyInStock) {
-        if (name == null || name.isEmpty()) {
-            throw new IllegalArgumentException("name cannot be null or empty");
-        }
-        if (minPrice < 0) {
-            minPrice = 0;
-        }
-        if (maxPrice < minPrice) {
-            maxPrice = minPrice;
-        }
+    private static ItemInfo toItemInfo(Item it) {
+        int id = it.getId();
+        String name = it.getName();
+        String description = it.getDescription();
+        float price = it.getPrice();
+        int stock = it.getStock();
 
-        String needle = name.toLowerCase();
-        List<ItemInfo> result = new ArrayList<>();
-
-        for (int i = 0; i < items.size(); i++) {
-            Item it = items.get(i);
-
-            String itemName = it.getName();
-            boolean nameMatches = false;
-            if (itemName != null) {
-                String lower = itemName.toLowerCase();
-                if (lower.contains(needle)) {
-                    nameMatches = true;
-                }
-            }
-
-            float price = it.getPrice();
-            boolean priceMatches = false;
-            if (price >= minPrice && price <= maxPrice) {
-                priceMatches = true;
-            }
-
-            boolean stockMatches = true;
-            if (onlyInStock) {
-                if (it.getStock() <= 0) {
-                    stockMatches = false;
-                }
-            }
-
-            if (nameMatches && priceMatches && stockMatches) {
-                result.add(toInfo(it));
+        List<ItemCategory> categories = it.getCategories();
+        List<ItemCategory> categoriesCopy = new ArrayList<>();
+        if (categories != null) {
+            for (ItemCategory c : categories) {
+                if (c != null) categoriesCopy.add(c);
             }
         }
-
-        return result;
-    }
-
-    public static List<ItemInfo> getItemsByCategory(ItemCategory category, int minPrice, int maxPrice, boolean onlyInStock) {
-        if (category == null) {
-            throw new IllegalArgumentException("category cannot be null");
-        }
-        if (minPrice < 0) {
-            minPrice = 0;
-        }
-        if (maxPrice < minPrice) {
-            maxPrice = minPrice;
-        }
-
-        int wantedCategoryId = category.getId();
-        List<ItemInfo> result = new ArrayList<>();
-
-        for (int i = 0; i < items.size(); i++) {
-            Item it = items.get(i);
-        }
-
-        return result;
-    }
-
-    public static void addItem(Item item, UserRole role) {
-
-    }
-
-    public static void deleteItem(int id, UserRole role) {
-
-    }
-
-    public static void updateItem(Item item, UserRole role) {
-
-    }
-
-    private static ItemInfo toInfo(Item it) {
-        return new ItemInfo(
-                it.getId(),
-                it.getName(),
-                it.getDescription(),
-                it.getPrice(),
-                it.getStock(),
-                it.getCategories()
-        );
+        return new ItemInfo(id, name, description, price, stock, categoriesCopy);
     }
 }

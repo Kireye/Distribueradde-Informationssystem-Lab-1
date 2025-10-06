@@ -29,7 +29,7 @@ public class MySqlUser extends User {
         password = password.trim();
 
         String query =
-                        "SELECT " +
+                "SELECT " +
                         "    u.user_id, " +
                         "    u.name, " +
                         "    u.user_role " +

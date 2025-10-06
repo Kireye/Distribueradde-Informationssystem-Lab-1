@@ -1,115 +1,67 @@
-<%@ include file="/WEB-INF/jspf/db-init.jspf" %>
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
-<%@ page import="com.werkstrom.distinfolab1.ui.UserInfo" %>
-
-<link rel="stylesheet" href="css/style.css?v=6">
-
-<%
-  UserInfo currentUser = null;
-  if (session != null) {
-      Object o = session.getAttribute("user");
-      if (o instanceof UserInfo) {
-          currentUser = (UserInfo) o;
-      }
-  }
-
-  String displayName = null;
-  String displayRole = null;
-  if (currentUser != null) {
-      displayName = currentUser.getName();
-      if (currentUser.getRole() != null) {
-          displayRole = currentUser.getRole().getRoleName();
-      }
-  }
-%>
+<link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=6">
 
 <header class="site-header">
   <div class="container topbar">
 
-    <!-- Brand -> Home -->
-    <a class="brand" href="<%= request.getContextPath() %>/index.jsp">MiniShop</a>
+    <!-- Brand -> alltid till ItemServlet (lista) -->
+    <a class="brand" href="${pageContext.request.contextPath}/items">MiniShop</a>
 
-    <!-- Search (GET). Replace action when controller exists -->
-    <form class="search" action="<%= request.getContextPath() %>/index.jsp" method="get">
+    <!-- Sök -> ItemServlet (lista/filter/sök) -->
+    <form class="search" action="${pageContext.request.contextPath}/items" method="get">
       <input type="text" name="q" placeholder="Search products…" value="${param.q}">
       <button type="submit" aria-label="Search">🔍</button>
     </form>
 
     <!-- Actions (account + cart) -->
     <div class="actions">
-
-      <!-- Account -->
+      <!-- När INTE inloggad: länkar går till UserServlet (GET) -->
       <div class="action">
-        <div class="links">
-          <%
-            if (currentUser == null) {
-          %>
-              <a href="<%= request.getContextPath() %>/login.jsp">Login</a>
-              <a class="sub" href="<%= request.getContextPath() %>/register.jsp">Create account</a>
-          <%
-            } else {
-          %>
-              <!-- Show name + role -->
-              <span class="user-pill">
-                <span class="user-name"><%= displayName %></span>
-                <span class="role-badge"><%= displayRole %></span>
-              </span>
+        <div class="links" style="${empty sessionScope.user ? '' : 'display:none'}">
+          <a href="${pageContext.request.contextPath}/user/login">Login</a>
+          <a class="sub" href="${pageContext.request.contextPath}/user/register">Create account</a>
+        </div>
 
-              <!-- Logout (POST) -->
-              <form action="<%= request.getContextPath() %>/logout.jsp" method="post" style="display:inline;">
-                <button type="submit" class="linklike">Logout</button>
-              </form>
-          <%
-            }
-          %>
+        <!-- När inloggad: visa namn/roll + logout (POST till UserServlet) -->
+        <div class="links" style="${empty sessionScope.user ? 'display:none' : ''}">
+          <span class="user-pill">
+            <span class="user-name">${sessionScope.user.name}</span>
+            <span class="role-badge">${sessionScope.user.role.roleName}</span>
+          </span>
+          <form action="${pageContext.request.contextPath}/user/logout" method="post" style="display:inline;">
+            <button type="submit" class="linklike">Logout</button>
+          </form>
         </div>
       </div>
 
-      <!-- Cart + Orders -->
-      <%
-        if (currentUser != null) {
-      %>
-        <div class="action">
-          <a class="icon" href="<%= request.getContextPath() %>/cart.jsp" aria-label="Cart">
-            <svg viewBox="0 0 24 24" aria-hidden="true" class="cart-svg">
-              <path d="M7 6h14l-1.5 9H8.6L7 6Zm-3 0h2l2 12h11M9 21a1 1 0 1 0 0-2
-                1 1 0 0 0 0 2Zm8 0a1 1 0 1 0 0-2
-                1 1 0 0 0 0 2Z"/>
-            </svg>
-            <span class="cart-text"></span>
-          </a>
-        </div>
+      <!-- Cart + Orders -> (framtida) servlets -->
+      <div class="action" style="${empty sessionScope.user ? 'display:none' : ''}">
+        <a class="icon" href="${pageContext.request.contextPath}/cart" aria-label="Cart">
+          <svg viewBox="0 0 24 24" aria-hidden="true" class="cart-svg">
+            <path d="M7 6h14l-1.5 9H8.6L7 6Zm-3 0h2l2 12h11M9 21a1 1 0 1 0 0-2
+                     1 1 0 0 0 0 2Zm8 0a1 1 0 1 0 0-2
+                     1 1 0 0 0 0 2Z"/>
+          </svg>
+          <span class="cart-text"></span>
+        </a>
+      </div>
+      <div class="action" style="${empty sessionScope.user ? 'display:none' : ''}">
+        <a class="link" href="${pageContext.request.contextPath}/orders">Orders</a>
+      </div>
 
-        <div class="action">
-          <a class="link" href="<%= request.getContextPath() %>/order.jsp">
-            Orders
-          </a>
-        </div>
-      <%
-        } else {
-      %>
-        <div class="action">
-          <a class="muted" href="<%= request.getContextPath() %>/login.jsp">
-            Log in to see cart and orders
-          </a>
-        </div>
-      <%
-        }
-      %>
+      <!-- Hint när ej inloggad -->
+      <div class="action" style="${empty sessionScope.user ? '' : 'display:none'}">
+        <a class="muted" href="${pageContext.request.contextPath}/user/login">
+          Log in to see cart and orders
+        </a>
+      </div>
     </div>
   </div>
 
-  <!-- Category bar -->
+  <!-- Category bar: HTML injiceras av ItemServlet i applicationScope -->
   <nav class="catbar">
     <div class="container catbar-inner">
-      <!-- Use catId to filter (1..7) to match DB Item_category IDs -->
-      <a href="<%= request.getContextPath() %>/index.jsp?catId=1">Electronics</a>
-      <a href="<%= request.getContextPath() %>/index.jsp?catId=2">Home &amp; Kitchen</a>
-      <a href="<%= request.getContextPath() %>/index.jsp?catId=3">Video Games &amp; Consoles</a>
-      <a href="<%= request.getContextPath() %>/index.jsp?catId=4">Books</a>
-      <a href="<%= request.getContextPath() %>/index.jsp?catId=5">Toys &amp; Games</a>
-      <a href="<%= request.getContextPath() %>/index.jsp?catId=6">Sport &amp; Outdoor</a>
-      <a href="<%= request.getContextPath() %>/index.jsp?catId=7">Tools</a>
+      ${applicationScope.categoriesHtml}
     </div>
   </nav>
 </header>
