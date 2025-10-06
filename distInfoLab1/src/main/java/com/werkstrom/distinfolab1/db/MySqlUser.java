@@ -193,6 +193,22 @@ public class MySqlUser extends User {
         }
     }
 
+    public static void updateUserRole(int userId, UserRole role) {
+        if (role == null) throw new IllegalArgumentException("Role cannot be null");
+        if (userId <= 0) throw new IllegalArgumentException("UserId cannot be negative or zero");
+        if (role == UserRole.GUEST) throw new IllegalArgumentException("User cannot have role guest");
+
+        String query = "UPDATE User u SET u.user_role = ? WHERE u.user_id = ?;";
+        try (PreparedStatement statement = MySqlConnectionManager.createPreparedStatement(query)) {
+            statement.setString(1, role.getRoleName());
+            statement.setInt(2, userId);
+            statement.executeUpdate();
+        }
+        catch (SQLException e) {
+            throw new QueryException("Could not update user role: " + e.getMessage());
+        }
+    }
+
     private static String hashPassword(String password) {
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-256");
