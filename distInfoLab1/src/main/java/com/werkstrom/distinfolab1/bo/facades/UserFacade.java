@@ -38,6 +38,8 @@ public final class UserFacade {
         String role = user.getRole().getRoleName();
         MySqlConnectionManager.initializeConnection(role, role);
 
+        System.out.println(role);
+
         // 3) Paketera till UI-objekt för vyn
         return new UserInfo(
                 user.getId(),
@@ -55,5 +57,6 @@ public final class UserFacade {
         }
         MySqlConnectionManager.closeConnection();
         MySqlConnectionManager.initializeConnection("guest", "guest");
+        System.out.println("guest");
     }
 }
