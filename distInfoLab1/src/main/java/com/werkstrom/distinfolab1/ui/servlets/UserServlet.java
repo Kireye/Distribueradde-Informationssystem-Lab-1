@@ -32,6 +32,12 @@ public class UserServlet extends HttpServlet {
             return;
         }
 
+        // I doGet:
+        if ("/register".equals(path)) {
+            req.getRequestDispatcher("/register.jsp").forward(req, resp);
+            return;
+        }
+
         if ("/logout".equals(path)) {
             // GET /user/logout -> tillbaka till produktlistan
             resp.sendRedirect(req.getContextPath() + "/items");
@@ -53,6 +59,12 @@ public class UserServlet extends HttpServlet {
 
         if ("/login".equals(path)) {
             handleLogin(req, resp);
+            return;
+        }
+
+        // I doPost:
+        if ("/register".equals(path)) {
+            handleRegister(req, resp);
             return;
         }
 
@@ -97,6 +109,35 @@ public class UserServlet extends HttpServlet {
             req.getRequestDispatcher("/login.jsp").forward(req, resp);
         }
     }
+
+    private void handleRegister(HttpServletRequest req, HttpServletResponse resp)
+            throws IOException, ServletException {
+        String name = req.getParameter("name");
+        String email = req.getParameter("email");
+        String password = req.getParameter("password");
+
+        if (name == null) name = "";
+        if (email == null) email = "";
+        if (password == null) password = "";
+
+        if (name.trim().isEmpty() || email.trim().isEmpty() || password.trim().isEmpty()) {
+            req.setAttribute("error", "Fyll i namn, e-post och lösenord.");
+            req.getRequestDispatcher("/register.jsp").forward(req, resp);
+            return;
+        }
+
+        try {
+            // Skapar kundkonto via Facade (se punkt 3)
+            com.werkstrom.distinfolab1.bo.facades.UserFacade.register(name, email, password);
+
+            // Klart – redirecta hem (eller byt till "/login.jsp" om du hellre vill)
+            resp.sendRedirect(req.getContextPath() + "/");
+        } catch (Exception e) {
+            req.setAttribute("error", "Kunde inte skapa konto: " + e.getMessage());
+            req.getRequestDispatcher("/register.jsp").forward(req, resp);
+        }
+    }
+
 
     private void handleLogout(HttpServletRequest req, HttpServletResponse resp)
             throws IOException, ServletException {

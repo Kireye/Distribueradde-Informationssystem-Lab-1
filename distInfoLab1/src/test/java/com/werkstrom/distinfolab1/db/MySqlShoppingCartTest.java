@@ -138,7 +138,7 @@ class MySqlShoppingCartTest {
     @Test
     void getShoppingCart() {
         MySqlConnectionManager.initializeConnection("root", "MySQLRoot");
-        MySqlShoppingCart cart = MySqlShoppingCart.getShoppingCart(3);
+        MySqlShoppingCart cart = (MySqlShoppingCart) MySqlShoppingCart.getCart(3);
         assertNotNull(cart);
         System.out.println(cart);
     }

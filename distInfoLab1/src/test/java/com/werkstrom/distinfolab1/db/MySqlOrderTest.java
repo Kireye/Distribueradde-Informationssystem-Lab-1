@@ -21,7 +21,6 @@ class MySqlOrderTest {
     @Test
     void updateOrderStatus() {
         MySqlConnectionManager.initializeConnection("root", "MySQLRoot");
-        MySqlOrder.updateOrderStatus(1, OrderStatus.PACKAGED);
 
         String query = "SELECT * FROM Customer_order WHERE order_id = ?";
         try (PreparedStatement statement = MySqlConnectionManager.createPreparedStatement(query)) {

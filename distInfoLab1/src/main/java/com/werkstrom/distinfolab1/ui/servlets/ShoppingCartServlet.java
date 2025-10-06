@@ -1,10 +1,9 @@
 package com.werkstrom.distinfolab1.ui.servlets;
 
-import com.werkstrom.distinfolab1.bo.QuantityItem;
 import com.werkstrom.distinfolab1.bo.facades.ShoppingCartFacade;
 import com.werkstrom.distinfolab1.db.exceptions.ConnectionException;
 import com.werkstrom.distinfolab1.db.exceptions.QueryException;
-import com.werkstrom.distinfolab1.ui.QuantityItemInfo;
+import com.werkstrom.distinfolab1.ui.CartItemInfo;
 import com.werkstrom.distinfolab1.ui.ShoppingCartInfo;
 import com.werkstrom.distinfolab1.ui.UserInfo;
 
@@ -117,7 +116,7 @@ public class ShoppingCartServlet extends HttpServlet {
                 .append("<th>Produkt</th><th class=\"right\">Pris</th><th class=\"right\">Antal</th><th class=\"right\">Delsumma</th><th></th>")
                 .append("</tr></thead><tbody>");
 
-        for (QuantityItem ci : cart.getItems()) {
+        for (CartItemInfo ci : cart.getItems()) {
             sb.append("<tr>")
                     .append("<td>").append(escape(ci.getName())).append("</td>")
                     .append("<td class=\"right\">").append(fmt(ci.getPrice())).append(" kr</td>")
@@ -143,9 +142,19 @@ public class ShoppingCartServlet extends HttpServlet {
                 .append("<th>Totalt</th><th></th><th class=\"right\">").append(cart.getTotalQuantity()).append("</th>")
                 .append("<th class=\"right\">").append(fmt(cart.getTotal())).append(" kr</th>")
                 .append("<th class=\"right\">")
+                .append("<div class=\"row\" style=\"justify-content:flex-end; gap:8px;\">")
+
+                // Töm varukorg (POST)
                 .append("<form action=\"").append(ctx).append("/cart/clear\" method=\"post\">")
                 .append("<button type=\"submit\" class=\"btn-secondary\">Töm varukorg</button>")
                 .append("</form>")
+
+                // Gå till kassan (GET → OrderServlet#doGet /orders/checkout → checkout.jsp)
+                .append("<form action=\"").append(ctx).append("/orders/checkout\" method=\"get\">")
+                .append("<button type=\"submit\">Gå till kassan</button>")
+                .append("</form>")
+
+                .append("</div>")
                 .append("</th>")
                 .append("</tr></tfoot>")
                 .append("</table>");

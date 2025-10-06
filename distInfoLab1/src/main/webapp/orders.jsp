@@ -3,7 +3,7 @@
 <html lang="sv">
 <head>
   <meta charset="UTF-8">
-  <title>MiniShop</title>
+  <title>Mina ordrar – MiniShop</title>
   <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
 </head>
 <body>
@@ -11,12 +11,13 @@
 <%@ include file="/WEB-INF/jspf/header.jspf" %>
 
 <main class="container">
-  <h1>Produkter</h1>
-  <p class="muted">Klicka på en produkt för att se mer information och lägga till i kundvagnen.</p>
+  <h1>Mina ordrar</h1>
+  <p class="muted" style="${empty requestScope.error ? 'display:none' : 'color:#dc2626'}">
+    ${requestScope.error}
+  </p>
 
-  <!-- Färdigrenderade kort injiceras av ItemServlet -->
-  <section class="grid">
-    ${requestScope.itemsHtml}
+  <section>
+    ${requestScope.ordersHtml}
   </section>
 </main>
 
