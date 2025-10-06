@@ -1,12 +1,17 @@
 package com.werkstrom.distinfolab1.db;
 
+import com.werkstrom.distinfolab1.bo.Item;
+import com.werkstrom.distinfolab1.bo.ItemCategory;
 import com.werkstrom.distinfolab1.bo.QuantityItem;
 import com.werkstrom.distinfolab1.bo.ShoppingCart;
 import com.werkstrom.distinfolab1.db.exceptions.ConnectionException;
+import com.werkstrom.distinfolab1.db.exceptions.NoResultException;
 import com.werkstrom.distinfolab1.db.exceptions.QueryException;
 
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class MySqlShoppingCart extends ShoppingCart {
@@ -98,6 +103,71 @@ public class MySqlShoppingCart extends ShoppingCart {
         catch (Exception e) {
             MySqlConnectionManager.rollbackTransaction();
             throw new QueryException("Could not empty cart of user " + userId + " : " + e.getMessage());
+        }
+    }
+
+    public static MySqlShoppingCart getShoppingCart(int userId) throws QueryException, ConnectionException {
+        if (userId <= 0) throw new IllegalArgumentException("User id must be greater than zero");
+        if (!MySqlConnectionManager.isConnected()) throw new ConnectionException("No connection established");
+
+        String query =
+                "SELECT " +
+                        "    sc.item_id " +
+                        "    , sc.quantity " +
+                        "    , i.name AS item_name " +
+                        "    , i.description " +
+                        "    , i.price " +
+                        "    , i.stock " +
+                        "    , icm.item_category_id " +
+                        "    , ic.name AS item_category_name " +
+                        "FROM " +
+                        "    Shopping_cart sc " +
+                        "LEFT JOIN " +
+                        "        Item i ON " +
+                        "            sc.item_id = i.item_id " +
+                        "LEFT JOIN " +
+                        "        Item_category_mapping icm ON " +
+                        "            i.item_id = icm.item_id " +
+                        "LEFT JOIN " +
+                        "        Item_category ic ON " +
+                        "            icm.item_category_id = ic.item_category_id " +
+                        "WHERE  " +
+                        "    sc.user_id = ?;";
+        try (PreparedStatement statement = MySqlConnectionManager.createPreparedStatement(query)) {
+            statement.setInt(1, userId);
+            boolean hasResult = statement.execute();
+            if (!hasResult) throw new NoResultException("Could not get cart of user " + userId);
+            ResultSet resultSet = statement.getResultSet();
+            int lastItemId = 0;
+            int lastCategoryId = 0;
+            ArrayList<QuantityItem> cartItems = new ArrayList<>();
+            while (resultSet.next()) {
+                int itemId = resultSet.getInt("item_id");
+                if (itemId == 0) break;
+                if (itemId != lastItemId) {
+                    String itemName = resultSet.getString("item_name");
+                    String description = resultSet.getString("description");
+                    float price = resultSet.getFloat("price");
+                    int stock = resultSet.getInt("stock");
+                    int quantity = resultSet.getInt("quantity");
+                    Item newItem = new Item(itemId, itemName, description, price, stock, null);
+                    cartItems.add(new QuantityItem(quantity, newItem));
+                    lastItemId = itemId;
+                    lastCategoryId = 0;
+                }
+
+                int categoryId = resultSet.getInt("item_category_id");
+                if (categoryId != lastCategoryId) {
+                    Item currentItem = cartItems.get(cartItems.size() - 1).getItem();
+                    String categoryName = resultSet.getString("item_category_name");
+                    currentItem.addCategory(new ItemCategory(categoryId, categoryName));
+                    lastCategoryId = categoryId;
+                }
+            }
+            return new MySqlShoppingCart(userId, cartItems);
+        }
+        catch (SQLException e) {
+            throw new QueryException("Could not get cart of user: " + e.getMessage());
         }
     }
 }
