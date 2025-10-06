@@ -3,7 +3,7 @@
 <html lang="sv">
 <head>
   <meta charset="UTF-8">
-  <title>MiniShop – Produkter</title>
+  <title>MiniShop</title>
   <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
 </head>
 <body>

@@ -142,9 +142,19 @@ public class ShoppingCartServlet extends HttpServlet {
                 .append("<th>Totalt</th><th></th><th class=\"right\">").append(cart.getTotalQuantity()).append("</th>")
                 .append("<th class=\"right\">").append(fmt(cart.getTotal())).append(" kr</th>")
                 .append("<th class=\"right\">")
+                .append("<div class=\"row\" style=\"justify-content:flex-end; gap:8px;\">")
+
+                // Töm varukorg (POST)
                 .append("<form action=\"").append(ctx).append("/cart/clear\" method=\"post\">")
                 .append("<button type=\"submit\" class=\"btn-secondary\">Töm varukorg</button>")
                 .append("</form>")
+
+                // Gå till kassan (GET → OrderServlet#doGet /orders/checkout → checkout.jsp)
+                .append("<form action=\"").append(ctx).append("/orders/checkout\" method=\"get\">")
+                .append("<button type=\"submit\">Gå till kassan</button>")
+                .append("</form>")
+
+                .append("</div>")
                 .append("</th>")
                 .append("</tr></tfoot>")
                 .append("</table>");

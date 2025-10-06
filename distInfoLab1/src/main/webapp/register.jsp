@@ -18,32 +18,25 @@
       ${requestScope.error}
     </p>
 
-    <!-- POST till UserServlet (register) -->
     <form action="${pageContext.request.contextPath}/user/register" method="post" class="stack">
       <label>Namn
         <div class="input-icon">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-5.33 0-8 2.67-8 5v1h16v-1c0-2.33-2.67-5-8-5Z"/>
-          </svg>
-          <input type="text" name="name" placeholder="För- och efternamn" required>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-5.33 0-8 2.67-8 5v1h16v-1c0-2.33-2.67-5-8-5Z"/></svg>
+          <input type="text" name="name" placeholder="Ditt namn" required>
         </div>
       </label>
 
       <label>E-post
         <div class="input-icon">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M20 4H4a2 2 0 0 0-2 2v.2l10 6.3L22 6.2V6a2 2 0 0 0-2-2Zm0 4.4-8 5-8-5V18a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2Z"/>
-          </svg>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-5.33 0-8 2.67-8 5v1h16v-1c0-2.33-2.67-5-8-5Z"/></svg>
           <input type="email" name="email" placeholder="E-postadress" required>
         </div>
       </label>
 
       <label>Lösenord
         <div class="input-icon">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M17 9h-1V7a4 4 0 0 0-8 0v2H7a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2Zm-6 0V7a3 3 0 0 1 6 0v2Zm3 7a1.5 1.5 0 1 1 1.5-1.5A1.5 1.5 0 0 1 14 16Z"/>
-          </svg>
-          <input type="password" name="password" placeholder="Välj ett starkt lösenord" required>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 9h-1V7a4 4 0 0 0-8 0v2H7a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2Zm-6 0V7a3 3 0 0 1 6 0v2Zm3 7a1.5 1.5 0 1 1 1.5-1.5A1.5 1.5 0 0 1 14 16Z"/></svg>
+          <input type="password" name="password" placeholder="Lösenord" required>
         </div>
       </label>
 
@@ -51,7 +44,7 @@
     </form>
 
     <div class="auth-links">
-      <a class="link" href="${pageContext.request.contextPath}/user/login">Har du redan konto? Logga in</a>
+      <a class="link" href="${pageContext.request.contextPath}/login.jsp">Har du redan konto? Logga in</a>
     </div>
   </section>
 </main>

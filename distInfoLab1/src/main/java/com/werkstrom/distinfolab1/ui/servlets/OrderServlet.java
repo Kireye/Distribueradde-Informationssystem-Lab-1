@@ -29,7 +29,7 @@ public class OrderServlet extends HttpServlet {
 
         String path = req.getPathInfo();
         if (path == null || "/".equals(path)) {
-            // Lista ordrar
+            // Lista alla ordrar
             try {
                 List<OrderInfo> orders = OrderFacade.listOrders(user.getId());
                 req.setAttribute("ordersHtml", buildOrdersListHtml(orders, req.getContextPath()));
@@ -57,6 +57,12 @@ public class OrderServlet extends HttpServlet {
             return;
         }
 
+        if ("/checkout".equals(path)) {
+            // Visa checkout (vy-only)
+            req.getRequestDispatcher("/checkout.jsp").forward(req, resp);
+            return;
+        }
+
         resp.sendError(HttpServletResponse.SC_NOT_FOUND);
     }
 
@@ -67,15 +73,24 @@ public class OrderServlet extends HttpServlet {
         String path = req.getPathInfo();
         if (path == null) path = "";
 
-        if ("/place".equals(path) || "/checkout".equals(path)) {
+        if ("/place".equals(path)) {
+            String payment = trimOrEmpty(req.getParameter("payment"));
+            if (!"card".equals(payment) && !"invoice".equals(payment)) {
+                req.setAttribute("error", "Välj betalningsmetod.");
+                req.getRequestDispatcher("/checkout.jsp").forward(req, resp);
+                return;
+            }
+
             try {
+                // Skapa order (tömmer vagnen på DB-sidan)
                 OrderFacade.placeOrder(user.getId());
-                // Efter lyckad beställning → orders-listan
-                resp.sendRedirect(req.getContextPath()+"/orders");
+
+                // Redirect hem (index.jsp är welcome-file)
+                resp.sendRedirect(req.getContextPath() + "/");
                 return;
             } catch (ConnectionException | QueryException | IllegalArgumentException e) {
                 req.setAttribute("error", e.getMessage());
-                req.getRequestDispatcher("/cart.jsp").forward(req, resp);
+                req.getRequestDispatcher("/checkout.jsp").forward(req, resp);
                 return;
             }
         }
@@ -90,7 +105,7 @@ public class OrderServlet extends HttpServlet {
         HttpSession session = req.getSession(false);
         Object o = (session == null) ? null : session.getAttribute("user");
         if (!(o instanceof UserInfo)) {
-            req.setAttribute("error", "Du behöver vara inloggad för att se/hantera ordrar.");
+            req.setAttribute("error", "Du behöver vara inloggad för att fortsätta.");
             req.getRequestDispatcher("/login.jsp").forward(req, resp);
             return null;
         }
@@ -101,7 +116,7 @@ public class OrderServlet extends HttpServlet {
         try { return Integer.parseInt(s == null ? "0" : s.trim()); }
         catch (NumberFormatException e) { return 0; }
     }
-
+    private static String trimOrEmpty(String s) { return s == null ? "" : s.trim(); }
     private static String escape(String s) {
         if (s == null) return "";
         return s.replace("&","&amp;").replace("<","&lt;").replace(">","&gt;");
@@ -118,16 +133,14 @@ public class OrderServlet extends HttpServlet {
 
         StringBuilder sb = new StringBuilder();
         sb.append("<table class=\"table\">")
-                .append("<thead><tr><th>Order</th><th>Status</th><th>Datum</th><th class=\"right\">Summa</th><th></th></tr></thead><tbody>");
+                .append("<thead><tr><th>Order</th><th>Status</th><th>Datum</th><th class=\"right\"></th><th></th></tr></thead><tbody>");
 
         for (OrderInfo o : orders) {
             sb.append("<tr>")
                     .append("<td>#").append(o.getOrderId()).append("</td>")
                     .append("<td>").append(escape(o.getStatus().name().toLowerCase())).append("</td>")
                     .append("<td>").append(fmtDate(o.getOrderDate())).append("</td>")
-                    .append("<td class=\"right\">").append(fmt(o.getTotal())).append(" kr</td>")
                     .append("<td class=\"right\"><a class=\"link\" href=\"").append(ctx)
-                    .append("/orders/detail?id=").append(o.getOrderId()).append("\">Visa</a></td>")
                     .append("</tr>");
         }
 
