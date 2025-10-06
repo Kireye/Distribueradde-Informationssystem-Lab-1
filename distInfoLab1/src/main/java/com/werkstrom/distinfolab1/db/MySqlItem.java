@@ -55,42 +55,43 @@ public class MySqlItem extends Item {
         }
     }
 
-    public static List<MySqlItem> getItemsByName(String searchTerm, boolean inStockOnly) throws IllegalArgumentException, ConnectionException, NoResultException {
-        if (searchTerm == null || searchTerm.isEmpty()) throw new IllegalArgumentException("searchTerm cannot be null or empty");
-        if (!MySqlConnectionManager.isConnected())  throw new ConnectionException("No connection to database");
+    public static List<MySqlItem> getItemsByName(String searchTerm, boolean inStockOnly)
+            throws IllegalArgumentException, ConnectionException, NoResultException {
+        if (searchTerm == null || searchTerm.trim().isEmpty())
+            throw new IllegalArgumentException("searchTerm cannot be null or empty");
+        if (!MySqlConnectionManager.isConnected())
+            throw new ConnectionException("No connection to database");
 
-        String query = "SELECT " +
-                "    i.item_id " +
-                "    , i.name AS item_name " +
-                "    , i.description " +
-                "    , i.price " +
-                "    , i.stock " +
-                "    , icm.item_category_id " +
-                "    , ic.name AS category_name " +
-                "FROM  " +
-                "    Item i " +
-                "LEFT JOIN  " +
-                "        Item_category_mapping icm ON " +
-                "            i.item_id = icm.item_id " +
-                "LEFT JOIN " +
-                "        Item_category ic ON " +
-                "            icm.item_category_id = ic.item_category_id " +
-                "WHERE " +
-                "    ic.item_category_id = 3 " +
-                "    AND i.stock >= 0 " +
-                "ORDER BY " +
-                "    i.item_id " +
-                "    , icm.item_category_id;";
+        String query =
+                "SELECT " +
+                        "    i.item_id " +
+                        "  , i.name AS item_name " +
+                        "  , i.description " +
+                        "  , i.price " +
+                        "  , i.stock " +
+                        "  , icm.item_category_id " +
+                        "  , ic.name AS category_name " +
+                        "FROM Item i " +
+                        "LEFT JOIN Item_category_mapping icm ON i.item_id = icm.item_id " +
+                        "LEFT JOIN Item_category ic ON icm.item_category_id = ic.item_category_id " +
+                        "WHERE (LOWER(i.name) LIKE ? OR LOWER(i.description) LIKE ?) " +
+                        "  AND i.stock >= ? " +
+                        "ORDER BY i.item_id, icm.item_category_id;";
+
         try (PreparedStatement statement = MySqlConnectionManager.createPreparedStatement(query)) {
-            int inStockCriteria = inStockOnly ? 1 : 0;
-            statement.setString(1, "%" + searchTerm + "%");
-            statement.setInt(2, inStockCriteria);
+            String pattern = "%" + searchTerm.trim().toLowerCase() + "%";
+            int stockCriteria = inStockOnly ? 1 : 0;
+
+            statement.setString(1, pattern);
+            statement.setString(2, pattern);
+            statement.setInt(3, stockCriteria);
+
             boolean hasResult = statement.execute();
             if (!hasResult) throw new NoResultException("No items found");
             return getItemsFromResultSet(statement.getResultSet());
         }
         catch (SQLException e) {
-            throw new QueryException("Failed to get items from database: " + e.getMessage());
+            throw new QueryException("Failed to get items by name: " + e.getMessage());
         }
     }
 

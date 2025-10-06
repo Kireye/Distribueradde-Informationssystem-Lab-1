@@ -2,7 +2,6 @@ package com.werkstrom.distinfolab1.ui.servlets;
 
 import com.werkstrom.distinfolab1.bo.facades.ItemFacade;
 import com.werkstrom.distinfolab1.db.exceptions.ConnectionException;
-import com.werkstrom.distinfolab1.db.exceptions.NoResultException;
 import com.werkstrom.distinfolab1.db.exceptions.QueryException;
 import com.werkstrom.distinfolab1.ui.ItemInfo;
 
@@ -26,27 +25,18 @@ public class ItemServlet extends HttpServlet {
         String cat = req.getParameter("catId");
         String inStock = req.getParameter("inStock");
 
-        boolean inStockOnly = "1".equals(inStock) || "true".equalsIgnoreCase(inStock);
-        Integer catId = null;
+        boolean onlyInStock = "1".equals(inStock) || "true".equalsIgnoreCase(inStock);
+        Integer categoryId = null;
         try {
-            if (cat != null && !cat.isBlank()) catId = Integer.parseInt(cat.trim());
-        } catch (NumberFormatException ignored) { /* låt catId vara null */ }
+            if (cat != null && !cat.isBlank()) categoryId = Integer.parseInt(cat.trim());
+        } catch (NumberFormatException ignored) {}
 
         try {
-            List<ItemInfo> items;
-            if (q != null && !q.isBlank()) {
-                items = ItemFacade.searchByName(q, inStockOnly);
-            } else if (catId != null && catId > 0) {
-                items = ItemFacade.listByCategory(catId, inStockOnly);
-            } else {
-                items = ItemFacade.listAll(inStockOnly);
-            }
+            List<ItemInfo> items = ItemFacade.search(q, categoryId, onlyInStock);
 
-            // Bygg en *enkel* HTML-lista av kort. Inga helpers, bara rakt på.
             StringBuilder html = new StringBuilder();
             for (ItemInfo it : items) {
                 String stockText = it.getStock() > 0 ? "I lager" : "Slut";
-
                 html.append("<article class=\"card\">")
                         .append("<h3>").append(escape(it.getName())).append("</h3>")
                         .append("<p class=\"price\">").append(format(it.getPrice())).append(" kr</p>")
@@ -65,10 +55,6 @@ public class ItemServlet extends HttpServlet {
             req.setAttribute("error", e.getMessage());
             req.getRequestDispatcher("/index.jsp").forward(req, resp);
         }
-        catch (NoResultException e) {
-            req.setAttribute("itemsHtml", "<div class=\"card\" style=\"padding:16px;\">Inga produkter matchade din sökning.</div>");
-            req.getRequestDispatcher("/index.jsp").forward(req, resp);
-        }
         catch (ConnectionException | QueryException e) {
             req.setAttribute("itemsHtml", "<div class=\"card\" style=\"padding:16px;\">Kunde inte hämta produkter just nu.</div>");
             req.setAttribute("error", e.getMessage());
@@ -76,13 +62,11 @@ public class ItemServlet extends HttpServlet {
         }
     }
 
-    // Liten skyddsfunktion så inte item-namn kan bryta HTML:en.
     private static String escape(String s) {
         if (s == null) return "";
         return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
     }
 
-    // Extremt enkel pris-formattering (2 decimaler, med punkt — funkar bra nog).
     private static String format(float price) {
         return String.format(java.util.Locale.ROOT, "%.2f", price).replace('.', ',');
     }
