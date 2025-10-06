@@ -3,132 +3,58 @@
 <html lang="sv">
 <head>
   <meta charset="UTF-8">
-  <title>${param.name} – Produkt</title>
-  <link rel="stylesheet" href="<%= request.getContextPath() %>/css/style.css?v=10">
+  <title>${param.name} – MiniShop</title>
+  <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
 </head>
 <body>
 
 <%@ include file="/WEB-INF/jspf/header.jspf" %>
 
-<%
-  String ctx = request.getContextPath();
+<main class="container">
+  <!-- TODO: När ItemServlet finns:
+       - Ladda denna sida via /items/{id}
+       - Servleten sätter requestScope.item (ItemInfo) → byt ${param.*} till ${requestScope.item.*} -->
+  <section class="product-page">
+    <img class="main-image"
+         src="${pageContext.request.contextPath}/images/${param.image}"
+         alt="${param.name}">
 
-  // Bildfil från query (fallback)
-  String imageFile = request.getParameter("image");
-  if (imageFile == null || imageFile.isBlank()) {
-      imageFile = "airpods.jpg";
-  }
+    <div>
+      <h1 class="product-title">${param.name}</h1>
+      <div class="meta">
+        <span class="muted">${param.category}</span>
+      </div>
 
-  // Lager
-  String stockParam = request.getParameter("stock");
-  int s = 0;
-  if (stockParam != null) {
-      try { s = Integer.parseInt(stockParam); } catch (NumberFormatException ignored) {}
-  }
+      <div class="spec">
+        <h3>Beskrivning</h3>
+        <p class="muted">Detaljerad beskrivning kommer här.</p>
+      </div>
+    </div>
 
-  String stockText;
-  String stockClass;
-  if (s > 10) {
-      stockText = "I lager";
-      stockClass = "in-stock";
-  } else if (s > 0) {
-      stockText = "Få kvar";
-      stockClass = "low-stock";
-  } else {
-      stockText = "Slut";
-      stockClass = "out-stock";
-  }
+    <aside class="buybox card">
+      <div class="buy-price">
+        <span class="amount big">${param.price} kr</span>
+      </div>
 
-  // Hur många val ska dropdownen visa?
-  // Nu: upp till s (lager), men max 10 för att inte bli för lång.
-  // TODO: När DB/BO finns, sätt exakt från produktens lagerfält.
-  int maxSelectable = Math.min(Math.max(s, 0), 10);
-%>
+      <div class="stock">
+        <span class="${param.stock gt 5 ? 'in-stock' : (param.stock gt 0 ? 'low-stock' : 'out-stock')}">
+          ${param.stock gt 0 ? 'I lager' : 'Slut'}
+        </span>
+      </div>
 
-<main class="container product-page">
+      <!-- TODO: POST till /cart/add när CartServlet finns.
+           Skicka itemId och quantity. -->
+      <form action="${pageContext.request.contextPath}/cart/add" method="post" class="stack">
+        <input type="hidden" name="itemId" value="${param.id}">
+        <label>Antal
+          <input type="number" name="qty" min="1" max="${param.stock}" value="${param.stock gt 0 ? 1 : 0}" ${param.stock gt 0 ? '' : 'disabled'}>
+        </label>
+        <button type="submit" ${param.stock gt 0 ? '' : 'class="btn-disabled" disabled'}>Lägg i varukorg</button>
+      </form>
 
-  <!-- Vänster: huvudbild -->
-  <section class="gallery">
-    <img src="<%= ctx %>/images/<%= imageFile %>" alt="${param.name}" class="main-image">
+      <p class="small-muted">Fri retur inom 30 dagar.</p>
+    </aside>
   </section>
-
-  <!-- Mitten: detaljer -->
-  <section class="details">
-    <h1 class="product-title">${param.name}</h1>
-
-    <div class="meta">
-      <div><span class="muted">Kategori:</span> ${param.category}</div>
-      <div><span class="muted">Artikelnummer:</span> ${param.id}</div>
-    </div>
-
-    <div class="spec">
-      <h3>Om denna artikel</h3>
-      <ul>
-        <li>Här kan du visa en beskrivning från databasen.</li>
-        <li>Produktens egenskaper, t.ex. material, färg eller modell.</li>
-        <li>Exempelvis leveranstid och tillverkare.</li>
-      </ul>
-    </div>
-  </section>
-
-  <!-- Höger: köpbox -->
-  <aside class="buybox card">
-    <div class="buy-price">
-      <div class="amount"><span class="big">${param.price}</span> kr</div>
-    </div>
-
-    <div class="stock">
-      <div class="<%= stockClass %>"><%= stockText %></div>
-    </div>
-
-    <form action="<%= ctx %>/cart/add" method="post" class="stack">
-      <input type="hidden" name="productId" value="${param.id}">
-      <input type="hidden" name="name" value="${param.name}">
-      <input type="hidden" name="price" value="${param.price}">
-
-      <label>Antal
-        <select name="qty" <%= s == 0 ? "disabled" : "" %> >
-          <%
-            // Generera 1..maxSelectable. Om s == 0, rendera ett disabled val.
-            if (s <= 0) {
-          %>
-              <option value="0" disabled>Slut i lager</option>
-          <%
-            } else {
-              for (int i = 1; i <= maxSelectable; i++) {
-          %>
-                <option value="<%= i %>"><%= i %></option>
-          <%
-              }
-              // Om vi kapat på 10, ge en hint
-              if (s > 10) {
-          %>
-                <!-- Visar bara upp till 10 i dropdownen just nu -->
-          <%
-              }
-            }
-          %>
-        </select>
-      </label>
-
-      <button type="submit" <%= s == 0 ? "disabled class='btn-disabled'" : "" %>>
-        Lägg till i kundvagn
-      </button>
-    </form>
-
-    <%
-      if (s > 0 && s <= 10) {
-    %>
-      <div class="small-muted">Endast <strong><%= s %></strong> kvar.</div>
-    <%
-      } else if (s > 10) {
-    %>
-      <div class="small-muted">Välj upp till 10 åt gången.</div>
-    <%
-      }
-    %>
-  </aside>
-
 </main>
 
 </body>
