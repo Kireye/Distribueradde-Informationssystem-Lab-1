@@ -63,19 +63,4 @@ GRANT SELECT
 ON online_store.*
 TO 'guest'@'%';
 
-/*
-GRANT SELECT
-ON online_store.Item
-TO 'guest'@'%';
-
-GRANT SELECT
-ON online_store.Item_category
-TO 'guest'@'%';
-
-GRANT SELECT
-ON online_store.Item_category_mapping
-TO 'guest'@'%';
-
-*/
-
 FLUSH PRIVILEGES;
