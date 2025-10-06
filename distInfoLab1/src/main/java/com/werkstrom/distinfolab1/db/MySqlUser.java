@@ -21,6 +21,10 @@ public class MySqlUser extends User {
     }
 
     public static MySqlUser getUser(String email, String password) throws QueryException, ConnectionException, TransactionException {
+        if (email == null || email.isEmpty()) throw new IllegalArgumentException("Email cannot be null or empty");
+        if (password == null || password.isEmpty()) throw new IllegalArgumentException("Password cannot be null or empty");
+        if (!MySqlConnectionManager.isConnected()) throw new ConnectionException("Connection is not established");
+
         email = email.trim().toLowerCase();
         password = password.trim();
 
@@ -190,6 +194,69 @@ public class MySqlUser extends User {
         }
         catch (IllegalArgumentException e) {
             throw new QueryException("Illegal user role found in database: " + e.getMessage());
+        }
+    }
+
+    public static void addUser(UserRole role, String userName, String email, String password) {
+        if (role == null) throw new IllegalArgumentException("Role cannot be null");
+        if (role == UserRole.GUEST)  throw new IllegalArgumentException("User role cannot be guest");
+        if (userName == null || userName.isEmpty()) throw new IllegalArgumentException("Username cannot be null or empty");
+        if (email == null || email.isEmpty()) throw new IllegalArgumentException("Email cannot be null or empty");
+        if (password == null || password.isEmpty()) throw new IllegalArgumentException("Password cannot be null or empty");
+        if (!MySqlConnectionManager.isConnected()) throw new ConnectionException("Connection is not established");
+
+        userName = userName.trim();
+        email = email.trim().toLowerCase();
+        password = password.trim();
+
+        String query =
+                "INSERT INTO User (user_role, name, email, password_hash) " +
+                "VALUES (?, ?, ?, ?);";
+
+        try (PreparedStatement statement = MySqlConnectionManager.createPreparedStatement(query)) {
+            statement.setString(1, role.getRoleName());
+            statement.setString(2, userName);
+            statement.setString(3, email);
+            statement.setString(4, hashPassword(password));
+            statement.executeUpdate();
+        }
+        catch (SQLException e) {
+            throw new QueryException("Could not add user information: " + e.getMessage());
+        }
+
+    }
+
+    public static void updateUserRole(int userId, UserRole role) throws ConnectionException, QueryException {
+        if (role == null) throw new IllegalArgumentException("Role cannot be null");
+        if (userId <= 0) throw new IllegalArgumentException("UserId cannot be negative or zero");
+        if (role == UserRole.GUEST) throw new IllegalArgumentException("User cannot have role guest");
+        if (!MySqlConnectionManager.isConnected()) throw new ConnectionException("Connection is not established");
+
+        String query = "UPDATE User u SET u.user_role = ? WHERE u.user_id = ?;";
+        try (PreparedStatement statement = MySqlConnectionManager.createPreparedStatement(query)) {
+            statement.setString(1, role.getRoleName());
+            statement.setInt(2, userId);
+            statement.executeUpdate();
+        }
+        catch (SQLException e) {
+            throw new QueryException("Could not update user role: " + e.getMessage());
+        }
+    }
+
+    public static void deleteUser(int userId) throws ConnectionException, QueryException {
+        if (userId <= 0) throw new IllegalArgumentException("UserId cannot be negative or zero");
+        if (!MySqlConnectionManager.isConnected()) throw new ConnectionException("Connection is not established");
+
+        String query = "DELETE FROM User u WHERE u.user_id = ?;";
+        try (PreparedStatement statement = MySqlConnectionManager.createPreparedStatement(query)) {
+            MySqlConnectionManager.startTransaction();
+            statement.setInt(1, userId);
+            statement.executeUpdate();
+            MySqlConnectionManager.commitTransaction();
+        }
+        catch (SQLException e) {
+            MySqlConnectionManager.rollbackTransaction();
+            throw new QueryException("Could not delete user: " + e.getMessage());
         }
     }
 

@@ -45,11 +45,11 @@ GRANT UPDATE, INSERT, DELETE
 ON online_store.Shopping_cart
 TO 'customer'@'%';
 
-GRANT INSERT
+GRANT INSERT, DELETE
 ON online_store.Customer_order
 TO 'customer'@'%';
 
-GRANT INSERT
+GRANT INSERT, DELETE
 ON online_store.Order_item_mapping
 TO 'customer'@'%';
 
@@ -66,20 +66,5 @@ TO 'guest'@'%';
 GRANT SELECT
 ON online_store.*
 TO 'guest'@'%';
-
-/*
-GRANT SELECT
-ON online_store.Item
-TO 'guest'@'%';
-
-GRANT SELECT
-ON online_store.Item_category
-TO 'guest'@'%';
-
-GRANT SELECT
-ON online_store.Item_category_mapping
-TO 'guest'@'%';
-
-*/
 
 FLUSH PRIVILEGES;
