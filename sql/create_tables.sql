@@ -53,6 +53,5 @@ CREATE TABLE Order_item_mapping (
                         FOREIGN KEY (order_id) REFERENCES Customer_order(order_id),
                         item_id INT,
                         FOREIGN KEY (item_id) REFERENCES Item(item_id),
-                        quantity INT NOT NULL CHECK ( quantity > 0 ),
                         PRIMARY KEY (order_id, item_id)
 );
