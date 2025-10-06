@@ -7,7 +7,6 @@ import com.werkstrom.distinfolab1.db.exceptions.QueryException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -126,6 +125,21 @@ public class MySqlOrder extends Order {
         catch (Exception e) {
             MySqlConnectionManager.rollbackTransaction();
             throw new QueryException("Failed to place order: " + e.getMessage());
+        }
+    }
+
+    public static void updateOrderStatus(int orderId, OrderStatus orderStatus) {
+        if (orderStatus == null) throw new IllegalArgumentException("OrderStatus cannot be null");
+        if (orderId <= 0) throw new IllegalArgumentException("OrderId cannot be negative or zero");
+
+        String query = "UPDATE Customer_order co SET co.status = ? WHERE co.order_id = ?;";
+        try (PreparedStatement statement = MySqlConnectionManager.createPreparedStatement(query)) {
+            statement.setString(1, orderStatus.getStatusName());
+            statement.setInt(2, orderId);
+            statement.executeUpdate();
+        }
+        catch (SQLException e) {
+            throw new QueryException("Could not update order status: " + e.getMessage());
         }
     }
 
