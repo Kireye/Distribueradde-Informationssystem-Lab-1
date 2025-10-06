@@ -224,7 +224,7 @@ button:hover { opacity: 0.92; }
 
 .auth-links { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 12px; }
 .auth-links.center { justify-content: center; }
-.link { color: #111827; text-decoration: none; }
+.link {text-decoration: none; }
 .link:hover { text-decoration: underline; }
 
 @media (max-width: 480px) {
