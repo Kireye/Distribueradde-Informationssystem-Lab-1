@@ -55,6 +55,33 @@ public class MySqlItem extends Item {
         }
     }
 
+    public static MySqlItem getItemById(int itemId)
+            throws IllegalArgumentException, ConnectionException, NoResultException {
+        if (itemId <= 0) throw new IllegalArgumentException("itemId must be > 0");
+        if (!MySqlConnectionManager.isConnected()) throw new ConnectionException("No connection to database");
+
+        String query =
+                "SELECT " +
+                        "  i.item_id, i.name AS item_name, i.description, i.price, i.stock, " +
+                        "  icm.item_category_id, ic.name AS category_name " +
+                        "FROM Item i " +
+                        "LEFT JOIN Item_category_mapping icm ON i.item_id = icm.item_id " +
+                        "LEFT JOIN Item_category ic ON icm.item_category_id = ic.item_category_id " +
+                        "WHERE i.item_id = ? " +
+                        "ORDER BY icm.item_category_id;";
+
+        try (PreparedStatement ps = MySqlConnectionManager.createPreparedStatement(query)) {
+            ps.setInt(1, itemId);
+            boolean has = ps.execute();
+            if (!has) throw new NoResultException("No item found");
+            List<MySqlItem> list = getItemsFromResultSet(ps.getResultSet());
+            if (list.isEmpty()) throw new NoResultException("No item found");
+            return list.get(0);
+        } catch (SQLException e) {
+            throw new QueryException("Failed to get item by id: " + e.getMessage());
+        }
+    }
+
     public static List<MySqlItem> getItemsByName(String searchTerm, boolean inStockOnly)
             throws IllegalArgumentException, ConnectionException, NoResultException {
         if (searchTerm == null || searchTerm.trim().isEmpty())

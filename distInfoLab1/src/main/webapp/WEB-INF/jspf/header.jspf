@@ -4,23 +4,25 @@
 <header class="site-header">
   <div class="container topbar">
 
-    <!-- Brand -> Items (ItemServlet) -->
+    <!-- Brand -> alltid till ItemServlet (lista) -->
     <a class="brand" href="${pageContext.request.contextPath}/items">MiniShop</a>
 
-    <!-- Sök går mot /items -->
+    <!-- Sök -> ItemServlet (lista/filter/sök) -->
     <form class="search" action="${pageContext.request.contextPath}/items" method="get">
       <input type="text" name="q" placeholder="Search products…" value="${param.q}">
       <button type="submit" aria-label="Search">🔍</button>
     </form>
 
-    <!-- Actions -->
+    <!-- Actions (account + cart) -->
     <div class="actions">
+      <!-- När INTE inloggad: länkar går till UserServlet (GET) -->
       <div class="action">
         <div class="links" style="${empty sessionScope.user ? '' : 'display:none'}">
-          <a href="${pageContext.request.contextPath}/login.jsp">Login</a>
-          <a class="sub" href="${pageContext.request.contextPath}/register.jsp">Create account</a>
+          <a href="${pageContext.request.contextPath}/user/login">Login</a>
+          <a class="sub" href="${pageContext.request.contextPath}/user/register">Create account</a>
         </div>
 
+        <!-- När inloggad: visa namn/roll + logout (POST till UserServlet) -->
         <div class="links" style="${empty sessionScope.user ? 'display:none' : ''}">
           <span class="user-pill">
             <span class="user-name">${sessionScope.user.name}</span>
@@ -32,27 +34,31 @@
         </div>
       </div>
 
+      <!-- Cart + Orders -> (framtida) servlets -->
       <div class="action" style="${empty sessionScope.user ? 'display:none' : ''}">
-        <a class="icon" href="${pageContext.request.contextPath}/cart.jsp" aria-label="Cart">
+        <a class="icon" href="${pageContext.request.contextPath}/cart" aria-label="Cart">
           <svg viewBox="0 0 24 24" aria-hidden="true" class="cart-svg">
-            <path d="M7 6h14l-1.5 9H8.6L7 6Zm-3 0h2l2 12h11M9 21a1 1 0 1 0 0-2 1 1 0 0 0 0 2Zm8 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"/>
+            <path d="M7 6h14l-1.5 9H8.6L7 6Zm-3 0h2l2 12h11M9 21a1 1 0 1 0 0-2
+                     1 1 0 0 0 0 2Zm8 0a1 1 0 1 0 0-2
+                     1 1 0 0 0 0 2Z"/>
           </svg>
           <span class="cart-text"></span>
         </a>
       </div>
       <div class="action" style="${empty sessionScope.user ? 'display:none' : ''}">
-        <a class="link" href="${pageContext.request.contextPath}/order.jsp">Orders</a>
+        <a class="link" href="${pageContext.request.contextPath}/orders">Orders</a>
       </div>
 
+      <!-- Hint när ej inloggad -->
       <div class="action" style="${empty sessionScope.user ? '' : 'display:none'}">
-        <a class="muted" href="${pageContext.request.contextPath}/login.jsp">
+        <a class="muted" href="${pageContext.request.contextPath}/user/login">
           Log in to see cart and orders
         </a>
       </div>
     </div>
   </div>
 
-  <!-- Category bar: vyn visar bara en färdig HTML-snutt som ItemServlet cachar i applicationScope -->
+  <!-- Category bar: HTML injiceras av ItemServlet i applicationScope -->
   <nav class="catbar">
     <div class="container catbar-inner">
       ${applicationScope.categoriesHtml}

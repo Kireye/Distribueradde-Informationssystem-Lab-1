@@ -1,11 +1,11 @@
 package com.werkstrom.distinfolab1.ui.servlets;
 
-import com.werkstrom.distinfolab1.bo.facades.ItemFacade;
 import com.werkstrom.distinfolab1.bo.facades.ItemCategoryFacade;
+import com.werkstrom.distinfolab1.bo.facades.ItemFacade;
 import com.werkstrom.distinfolab1.db.exceptions.ConnectionException;
 import com.werkstrom.distinfolab1.db.exceptions.QueryException;
-import com.werkstrom.distinfolab1.ui.ItemInfo;
 import com.werkstrom.distinfolab1.ui.ItemCategoryInfo;
+import com.werkstrom.distinfolab1.ui.ItemInfo;
 
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
@@ -16,42 +16,53 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Locale;
+import java.util.stream.Collectors;
 
-@WebServlet(name = "ItemServlet", urlPatterns = {"/items"})
+@WebServlet(name = "ItemServlet", urlPatterns = {"/items", "/items/*"})
 public class ItemServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
-        // 1) Säkra att kategorierna finns i applicationScope (cachas första gången)
-        ensureCategoriesInAppScope(req);
+        ensureCategoriesInAppScope(req); // cachar kategorilänkar i applicationScope
 
-        // 2) Läs filter-parametrar
-        String q = req.getParameter("q");
-        if (q != null) q = q.trim();
+        String path = req.getPathInfo(); // null för /items, "/detail" för /items/detail
+        if (path != null && path.equals("/detail")) {
+            handleDetail(req, resp);
+            return;
+        }
+        handleList(req, resp);
+    }
 
-        String cat = req.getParameter("catId");
-        String inStock = req.getParameter("inStock");
+    /* ---------- LISTA ---------- */
+    private void handleList(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
+
+        String q = trimOrNull(req.getParameter("q"));
+        String cat = trimOrNull(req.getParameter("catId"));
+        String inStock = trimOrNull(req.getParameter("inStock"));
 
         boolean onlyInStock = "1".equals(inStock) || "true".equalsIgnoreCase(inStock);
         Integer categoryId = null;
-        try {
-            if (cat != null && !cat.isBlank()) categoryId = Integer.parseInt(cat.trim());
-        } catch (NumberFormatException ignored) {}
+        try { if (cat != null) categoryId = Integer.parseInt(cat); } catch (NumberFormatException ignored) {}
 
-        // 3) Hämta varor via fasaden och bygg enkel HTML
         try {
             List<ItemInfo> items = ItemFacade.search(q, categoryId, onlyInStock);
 
+            String ctx = req.getContextPath();
             StringBuilder html = new StringBuilder();
             for (ItemInfo it : items) {
-                String stockText = it.getStock() > 0 ? "I lager" : "Slut";
-                html.append("<article class=\"card\">")
+                String stockText = it.getStock() > 5 ? "I lager"
+                        : it.getStock() > 0 ? "Få kvar"
+                        : "Slut";
+                html.append("<a class=\"card\" href=\"")
+                        .append(ctx).append("/items/detail?id=").append(it.getId()).append("\">")
                         .append("<h3>").append(escape(it.getName())).append("</h3>")
                         .append("<p class=\"price\">").append(format(it.getPrice())).append(" kr</p>")
                         .append("<p class=\"muted\">").append(stockText).append("</p>")
-                        .append("</article>");
+                        .append("</a>");
             }
             if (items.isEmpty()) {
                 html.append("<div class=\"card\" style=\"padding:16px;\">Inga produkter hittades.</div>");
@@ -72,18 +83,79 @@ public class ItemServlet extends HttpServlet {
         }
     }
 
-    /** Hämtar kategorier från DB via fasaden och cachar som färdig HTML i application-scope. */
+    /* ---------- DETALJ ---------- */
+    private void handleDetail(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+
+        String idParam = trimOrNull(req.getParameter("id"));
+        int id;
+        try {
+            id = Integer.parseInt(idParam);
+        } catch (Exception e) {
+            resp.sendRedirect(req.getContextPath() + "/items");
+            return;
+        }
+
+        try {
+            ItemInfo it = ItemFacade.getItemById(id);
+
+            // Förbered vy-attribut
+            req.setAttribute("item", it);
+            req.setAttribute("price", format(it.getPrice()));
+
+            String stockClass, stockText;
+            if (it.getStock() > 5) {
+                stockClass = "in-stock";  stockText = "I lager";
+            }
+            else if (it.getStock() > 0) {
+                stockClass = "low-stock"; stockText = "Få kvar";
+            }
+            else {
+                stockClass = "out-stock"; stockText = "Slut";
+            }
+            req.setAttribute("stockClass", stockClass);
+            req.setAttribute("stockText", stockText);
+
+            String categoryLine = it.getCategories().stream()
+                    .map(c -> c.getName())
+                    .collect(Collectors.joining(", "));
+            req.setAttribute("categoryLine", categoryLine);
+
+            // Bild – placeholder tills du har riktig bildhantering
+            String imageUrl = req.getContextPath() + "/images/item-" + it.getId() + ".jpg";
+            req.setAttribute("imageUrl", imageUrl);
+
+            int qtyMax = Math.max(0, it.getStock());
+            int qtyDefault = it.getStock() > 0 ? 1 : 0;
+            String qtyInputAttrs = it.getStock() > 0 ? "" : "disabled";
+            String addBtnAttrs = it.getStock() > 0 ? "" : "class=\"btn-disabled\" disabled";
+            req.setAttribute("qtyMax", qtyMax);
+            req.setAttribute("qtyDefault", qtyDefault);
+            req.setAttribute("qtyInputAttrs", qtyInputAttrs);
+            req.setAttribute("addBtnAttrs", addBtnAttrs);
+
+            req.getRequestDispatcher("/item.jsp").forward(req, resp);
+        }
+        catch (ConnectionException | QueryException e) {
+            req.setAttribute("itemsHtml", "<div class=\"card\" style=\"padding:16px;\">Kunde inte hämta produkten.</div>");
+            req.setAttribute("error", e.getMessage());
+            req.getRequestDispatcher("/index.jsp").forward(req, resp);
+        }
+        catch (IllegalArgumentException e) {
+            resp.sendRedirect(req.getContextPath() + "/items");
+        }
+    }
+
+    /* ---------- Kategorier i application-scope ---------- */
     private void ensureCategoriesInAppScope(HttpServletRequest req) {
         ServletContext app = req.getServletContext();
         Object cached = app.getAttribute("categoriesHtml");
-        if (cached instanceof String && !((String) cached).isEmpty()) return; // finns redan
+        if (cached instanceof String && !((String) cached).isEmpty()) return;
 
         try {
             List<ItemCategoryInfo> cats = ItemCategoryFacade.getAllCategories();
             String html = buildCategoriesHtml(cats, req.getContextPath());
             app.setAttribute("categoriesHtml", html);
         } catch (Exception e) {
-            // Fallback om DB inte nås just nu – visa statisk lista så headern funkar
             app.setAttribute("categoriesHtml", getStaticFallbackCategoriesHtml(req.getContextPath()));
         }
     }
@@ -99,7 +171,6 @@ public class ItemServlet extends HttpServlet {
     }
 
     private static String getStaticFallbackCategoriesHtml(String ctxPath) {
-        // Matchar seedade kategorier (1..7)
         return ""
                 + "<a href=\"" + ctxPath + "/items?catId=1\">Electronics</a>"
                 + "<a href=\"" + ctxPath + "/items?catId=2\">Home &amp; Kitchen</a>"
@@ -110,12 +181,19 @@ public class ItemServlet extends HttpServlet {
                 + "<a href=\"" + ctxPath + "/items?catId=7\">Tools</a>";
     }
 
+    /* ---------- Hjälpare ---------- */
+    private static String trimOrNull(String s) {
+        if (s == null) return null;
+        String t = s.trim();
+        return t.isEmpty() ? null : t;
+    }
+
     private static String escape(String s) {
         if (s == null) return "";
         return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
     }
 
     private static String format(float price) {
-        return String.format(java.util.Locale.ROOT, "%.2f", price).replace('.', ',');
+        return String.format(Locale.ROOT, "%.2f", price).replace('.', ',');
     }
 }

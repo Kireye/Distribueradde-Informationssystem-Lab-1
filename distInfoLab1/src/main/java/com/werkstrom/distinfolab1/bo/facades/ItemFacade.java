@@ -33,6 +33,13 @@ public final class ItemFacade {
         return toItemInfoList(MySqlItem.getAllItems(onlyInStock));
     }
 
+    public static ItemInfo getItemById(int itemId) throws ConnectionException, QueryException {
+        if (itemId <= 0) throw new IllegalArgumentException("itemId must be greater than 0");
+        ensureConnected();
+        MySqlItem dbItem = MySqlItem.getItemById(itemId);
+        return toItemInfo(dbItem);
+    }
+
     public static List<ItemInfo> getItemsByName(String searchTerm, boolean onlyInStock) throws ConnectionException, QueryException {
         if (searchTerm == null) throw new IllegalArgumentException("searchTerm cannot be null");
         if (searchTerm.isEmpty()) throw new IllegalArgumentException("searchTerm cannot be empty");

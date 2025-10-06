@@ -14,11 +14,11 @@
   <section class="auth-box card">
     <h1>Logga in</h1>
 
-    <!-- Visar fel som request-attribut "error" (sätts av UserServlet vid misslyckad login) -->
     <p class="muted" style="${empty requestScope.error ? 'display:none' : 'color:#dc2626'}">
       ${requestScope.error}
     </p>
 
+    <!-- POST till UserServlet -->
     <form action="${pageContext.request.contextPath}/user/login" method="post" class="stack">
       <label>E-post
         <div class="input-icon">
@@ -42,7 +42,7 @@
     </form>
 
     <div class="auth-links center">
-      <a class="link" href="${pageContext.request.contextPath}/register.jsp">Bli medlem</a>
+      <a class="link" href="${pageContext.request.contextPath}/user/register">Bli medlem</a>
     </div>
   </section>
 </main>

@@ -14,9 +14,7 @@
   <h1>Produkter</h1>
   <p class="muted">Klicka på en produkt för att se mer information och lägga till i kundvagnen.</p>
 
-  <!-- Denna sida är VY endast.
-       ItemServlet fyller requestScope.itemsHtml (alla produkter om ingen kategori/sök).
-  -->
+  <!-- Färdigrenderade kort injiceras av ItemServlet -->
   <section class="grid">
     ${requestScope.itemsHtml}
   </section>
